@@ -16,7 +16,7 @@
         android:onClick="goBack"
         android:text="voltar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></Button>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -24,6 +24,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingTop="50dp"
+        android:paddingHorizontal="25dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
