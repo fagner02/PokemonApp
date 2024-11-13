@@ -74,12 +74,14 @@
             android:id="@+id/exp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginTop="50dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nenhuma"
+                android:text="Experiências:"
+
                 android:textAlignment="center" />
         </LinearLayout>
     </LinearLayout>
