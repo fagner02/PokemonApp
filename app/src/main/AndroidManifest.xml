@@ -13,6 +13,16 @@
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="31">
         <activity
+            android:name=".AnimalScreen"
+            android:exported="false"
+            android:label="@string/title_activity_animal_screen"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
+            android:name=".animalapp.Animal"
+            android:exported="false"
+            android:label="@string/title_activity_animal"
+            android:theme="@style/Theme.MyApplication" />
+        <activity
             android:name=".JetpackCompose"
             android:exported="false"
             android:label="@string/title_activity_main2"

@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.myapplication.animalapp.Animal
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.bt).setOnClickListener {
             val myIntent: Intent = Intent(
                 this.baseContext,
-                JetpackCompose::class.java
+                Animal::class.java
             )
             myIntent.putExtra("key", value) //Optional parameters
             this.startActivity(myIntent)
