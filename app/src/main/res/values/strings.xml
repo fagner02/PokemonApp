@@ -7,4 +7,5 @@
     <string name="title_activity_main2">MainActivity2</string>
     <string name="title_activity_animal">Animal</string>
     <string name="title_activity_animal_screen">AnimalScreen</string>
+    <string name="title_activity_main">MainActivity</string>
 </resources>

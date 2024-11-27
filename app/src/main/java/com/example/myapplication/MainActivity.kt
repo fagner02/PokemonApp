@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.myapplication.animalapp.Animal
+import com.example.myapplication.zooapp.PokemonActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +33,13 @@ class MainActivity : AppCompatActivity() {
             myIntent.putExtra("key", value) //Optional parameters
             this.startActivity(myIntent)
         }
+
+        val myIntent: Intent = Intent(
+            this.baseContext,
+            PokemonActivity::class.java
+        )
+        myIntent.putExtra("key", value) //Optional parameters
+        this.startActivity(myIntent)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -39,7 +47,4 @@ class MainActivity : AppCompatActivity() {
         inflater.inflate(R.menu.menu, menu)
         return super.onCreateOptionsMenu(menu)
     }
-
-    
-
 }
