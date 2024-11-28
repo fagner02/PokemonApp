@@ -15,32 +15,51 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.BottomNavigationDefaults.windowInsets
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.R
 import com.example.myapplication.zooapp.ui.theme.MyApplicationTheme
+import java.util.Locale
 
 data class Pokemon (
     val name: String,
@@ -49,7 +68,8 @@ data class Pokemon (
     val abilities: String,
     val imgId: Int,
     val description: String,
-    val location: String
+    val location: String,
+    val fav: Boolean
 )
 
 val pikachu = Pokemon(
@@ -59,7 +79,8 @@ val pikachu = Pokemon(
     abilities = "Static, Lightning Rod",
     imgId = R.drawable.pika,
     description = "Um rato elétrico que armazena eletricidade em suas bochechas.",
-    location = "Região de Kanto"
+    location = "Região de Kanto",
+    fav= false
 )
 
 val charmander = Pokemon(
@@ -69,7 +90,8 @@ val charmander = Pokemon(
     abilities = "Blaze",
     imgId = R.drawable.chara,
     description = "Uma pequena salamandra com uma chama na ponta da cauda.",
-    location = "Região de Kanto"
+    location = "Região de Kanto",
+    fav= false
 )
 
 val bulbasaur = Pokemon(
@@ -79,7 +101,8 @@ val bulbasaur = Pokemon(
     abilities = "Overgrow",
     imgId = R.drawable.bulb,
     description = "Uma pequena criatura com uma semente nas costas.",
-    location = "Região de Kanto"
+    location = "Região de Kanto",
+    fav= false
 )
 
 val squirtle = Pokemon(
@@ -89,7 +112,8 @@ val squirtle = Pokemon(
     abilities = "Torrent",
     imgId = R.drawable.turt,
     description = "Uma pequena tartaruga que se esconde em sua carapaça.",
-    location = "Região de Kanto"
+    location = "Região de Kanto",
+    fav= false
 )
 
 val eevee = Pokemon(
@@ -99,22 +123,103 @@ val eevee = Pokemon(
     abilities = "Run Away",
     imgId = R.drawable.eve,
     description = "Um Pokémon com genes instáveis que podem evoluir de várias maneiras.",
-    location = "Região de Kanto"
+    location = "Região de Kanto",
+    fav= false
 )
-val pokemons = listOf(pikachu, charmander, bulbasaur, squirtle, eevee)
+val pokemons = mutableStateListOf(pikachu, charmander, bulbasaur, squirtle, eevee)
 class PokemonActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
             MyApplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    var searchQuery by remember { mutableStateOf("") }
-                    val filteredPokemon = remember(searchQuery) {
-                        pokemons.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                var route by remember  { mutableStateOf("list") }
+                val navController = rememberNavController()
+                navController.addOnDestinationChangedListener {controller, dest, args->
+                    run {
+                        println(controller)
+                        println(dest.route)
+                        println(args)
+                        route = dest.route ?: "list"
                     }
-                    val navController = rememberNavController()
+                }
+                Scaffold(modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                Modifier
+                                    .windowInsetsPadding(windowInsets)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround,
+                                verticalAlignment = Alignment.CenterVertically,
+                            )
+                            {
+                                TextButton(
+                                    enabled = route !="list",
+                                    colors = ButtonDefaults.textButtonColors(),
+                                    onClick = {navController.navigate("list")},
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            painterResource(R.drawable.home),
+                                            contentDescription = "início"
+                                        )
+                                        Text("início")
+                                    }
+                                }
+
+                                TextButton(enabled = route!="fav",
+                                    onClick = {navController.navigate("fav")}) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            painterResource(R.drawable.favout),
+                                            contentDescription = "favoritos"
+                                        )
+                                        Text("favoritos")
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    topBar = {
+                        val title: String
+                        if (route == "list") title = "Início"
+                        else if (route == "fav") title = "Favoritos"
+                        else title =
+                            navController.currentBackStackEntry?.arguments?.getString("pokemon")
+                                ?: ""
+                        var showDropDownMenu by remember { mutableStateOf(false) }
+                        TopAppBar(title = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painterResource(R.drawable.poke),
+                                    contentDescription = "icone"
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(title)
+                            }
+                        },
+                            actions = {
+                                IconButton(onClick = { showDropDownMenu = true }) {
+                                    Icon(Icons.Filled.MoreVert, "menu")
+                                }
+                                DropdownMenu(
+                                    showDropDownMenu,
+                                    onDismissRequest = { showDropDownMenu = false }) {
+                                    DropdownMenuItem(onClick = {},text = {Text("ajuda")})
+                                    DropdownMenuItem(onClick = {},text = {Text("config")})
+                                }
+                            }
+                        )
+                    }
+                ) { innerPadding ->
+                    var searchQuery by remember { mutableStateOf("") }
+                    val filteredPokemon = pokemons.filter { it.name.contains(searchQuery, ignoreCase = true) }
+
                     NavHost(navController, startDestination = "list") {
                         composable("list") {
                             Column(modifier = Modifier.padding(innerPadding)) {
@@ -131,6 +236,28 @@ class PokemonActivity : ComponentActivity() {
                                     modifier = Modifier.padding(horizontal = 8.dp)
                                 ) {
                                     items(filteredPokemon) { pokemon ->
+                                        ListItem(
+                                            pokemon,
+                                            onPokemonSelected = { navController.navigate("details/${pokemon.name}") })
+                                    }
+                                }
+                            }
+                        }
+                        composable("fav") {
+                            Column(modifier = Modifier.padding(innerPadding)) {
+                                TextField(
+                                    value = searchQuery,
+                                    onValueChange = { searchQuery = it },
+                                    label = { Text("Pesquisar") },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp)
+                                )
+                                LazyColumn(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                ) {
+                                    items(filteredPokemon.filter { pokemon -> pokemon.fav }) { pokemon ->
                                         ListItem(
                                             pokemon,
                                             onPokemonSelected = { navController.navigate("details/${pokemon.name}") })
@@ -199,20 +326,36 @@ fun ListItem(pokemon: Pokemon, onPokemonSelected: (Pokemon) -> Unit) {
                 .padding(16.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Image(
-                    painter = painterResource(id = pokemon.imgId),
-                    contentDescription = "${pokemon.name} Image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(text = pokemon.name, style = MaterialTheme.typography.titleMedium)
-                    Text(text = pokemon.type.first+""+pokemon.type.second, style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(id = pokemon.imgId),
+                        contentDescription = "${pokemon.name} Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(text = pokemon.name, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = pokemon.type.first + "" + pokemon.type.second,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+                TextButton(onClick = {
+                    val index = pokemons.indexOf(pokemon)
+                    pokemons[index] = pokemon.copy(fav = !pokemon.fav)
+                }) {
+                    Icon(
+                        painterResource(if (pokemon.fav) R.drawable.favfill else R.drawable.favout),
+                        contentDescription = "favoritar"
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
