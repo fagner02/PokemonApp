@@ -25,7 +25,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigationDefaults.windowInsets
 import androidx.compose.material.icons.Icons
@@ -229,7 +231,8 @@ class PokemonActivity : ComponentActivity() {
                 ) { innerPadding ->
                     var searchQuery by remember { mutableStateOf("") }
                     val filteredPokemon = pokemons.filter { it.name.contains(searchQuery, ignoreCase = true) }
-
+                    val listState = rememberLazyListState()
+                    var favListState = rememberLazyListState()
                     NavHost(navController, startDestination = "list") {
                         composable("list") {
                             var selected by remember { mutableStateOf("") }
@@ -244,7 +247,8 @@ class PokemonActivity : ComponentActivity() {
                                             onSelectPokemon = { pokemon ->
                                                 selected = pokemon
                                             },
-                                            onInputQuery = { input -> searchQuery = input })
+                                            onInputQuery = { input -> searchQuery = input },
+                                            state = listState)
 
                                     } else {
                                         val pokemon = pokemons.first { it.name == state }
@@ -271,7 +275,8 @@ class PokemonActivity : ComponentActivity() {
                                             sharedTransitionScope = this@SharedTransitionLayout,
                                             onInputQuery = { searchQuery = it },
                                             onSelectPokemon = { selected = it },
-                                            searchQuery = searchQuery
+                                            searchQuery = searchQuery,
+                                            state = favListState
                                         )
                                     }else {
                                         val pokemon = pokemons.first { it.name == state }
@@ -300,7 +305,8 @@ fun PokemonList(list: List<Pokemon>, modifier: Modifier,
                 onInputQuery: (String)->Unit,
                 searchQuery: String,
                 sharedTransitionScope: SharedTransitionScope,
-                animatedVisibilityScope: AnimatedVisibilityScope) {
+                animatedVisibilityScope: AnimatedVisibilityScope,
+                state: LazyListState) {
     with(sharedTransitionScope) {
         Column(modifier = modifier.fillMaxSize()) {
             TextField(
@@ -313,7 +319,8 @@ fun PokemonList(list: List<Pokemon>, modifier: Modifier,
             )
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier.padding(horizontal = 8.dp),
+                state = state
             ) {
                 items(list) { pokemon ->
                     ListItem(
@@ -361,7 +368,11 @@ fun PokemonScreen(pokemon: Pokemon, modifier: Modifier,
                     }) {
                         Icon(
                             if (pokemon.fav) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                            "favoritar"
+                            "favoritar",
+                            modifier=Modifier.sharedElement(
+                                rememberSharedContentState(key = "${pokemon.name}-fav"),
+                                animatedVisibilityScope
+                            )
                         )
                     }
                 }
@@ -458,7 +469,11 @@ fun ListItem(pokemon: Pokemon,
                     }) {
                         Icon(
                             painterResource(if (pokemon.fav) R.drawable.favfill else R.drawable.favout),
-                            contentDescription = "favoritar"
+                            contentDescription = "favoritar",
+                            modifier = Modifier.sharedElement(
+                                rememberSharedContentState(key = "${pokemon.name}-fav"),
+                                animatedVisibilityScope
+                            )
                         )
                     }
                 }
@@ -474,8 +489,6 @@ fun ListItem(pokemon: Pokemon,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Icon(Icons.Outlined.KeyboardArrowDown, "mais",
-                    modifier = Modifier.fillMaxWidth())
             }
         }
     }
