@@ -13,10 +13,12 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,24 +28,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigationDefaults.windowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
@@ -64,6 +57,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +67,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -83,7 +79,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.R
 import com.example.myapplication.zooapp.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 data class Pokemon (
     val name: String,
@@ -312,6 +310,7 @@ class PokemonActivity : ComponentActivity() {
                                                         pokemon,
                                                         modifier = Modifier.padding(innerPadding),
                                                         { selected = "" },
+                                                        searchQuery,
                                                         this@SharedTransitionLayout,
                                                         this@AnimatedContent
                                                     )
@@ -341,6 +340,7 @@ class PokemonActivity : ComponentActivity() {
                                                         pokemon,
                                                         modifier = Modifier.padding(innerPadding),
                                                         { selected = "" },
+                                                        searchQuery,
                                                         this@SharedTransitionLayout,
                                                         this@AnimatedContent
                                                     )
@@ -374,19 +374,57 @@ fun PokemonList(list: List<Pokemon>, modifier: Modifier,
                 onValueChange = { onInputQuery(it) },
                 label = { Text("Pesquisar") },
                 modifier = Modifier
+                    .sharedElement(
+                        rememberSharedContentState(key = "text"),
+                        animatedVisibilityScope
+                    )
                     .fillMaxWidth()
                     .padding(8.dp)
             )
+            val coroutine = rememberCoroutineScope()
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(horizontal = 8.dp),
                 state = state
             ) {
-                items(list) { pokemon ->
+                itemsIndexed(list) { index, pokemon ->
+                    var selecting by remember { mutableStateOf(false) }
+                    var timedout by remember { mutableStateOf(false) }
+                    if (selecting && (state.isScrollInProgress && !timedout)) {
+                        DisposableEffect(Unit) {
+                            onDispose {
+                                coroutine.launch {
+                                    state.stopScroll()
+                                }
+                                selecting=false
+                                timedout=false
+                                onSelectPokemon(pokemon.name)
+                                println("scroll completed")
+                            }
+                        }
+                    }
+                    if(selecting) {
+                        LaunchedEffect(Unit) {
+                            while (true) {
+                                delay(150.milliseconds)
+                                timedout=true
+                            }
+                        }
+                    }
+
+
                     ListItem(
                         pokemon,
+                        index,
+                        scrollToItem = {
+                            coroutine.launch {
+                                state.animateScrollToItem(index = index, -500)
+                            }
+                            selecting=true
+                        },
                         onPokemonSelected = {
-                            onSelectPokemon(pokemon.name)
+
                         },
                         animatedVisibilityScope = animatedVisibilityScope,
                         sharedTransitionScope = sharedTransitionScope
@@ -399,79 +437,100 @@ fun PokemonList(list: List<Pokemon>, modifier: Modifier,
 @Composable
 fun PokemonScreen(pokemon: Pokemon, modifier: Modifier,
                   onBack: ()->Unit,
+                  searchQuery: String,
                   sharedTransitionScope: SharedTransitionScope,
                   animatedVisibilityScope: AnimatedVisibilityScope) {
     with(sharedTransitionScope) {
-        Card(
-            modifier = modifier
-                .sharedElement(
-                    rememberSharedContentState(key = pokemon.name),
+        Column (modifier = modifier
+            .padding()
+        ){
+            TextField(
+                value = searchQuery,
+                onValueChange = { },
+                modifier = Modifier.sharedElement(
+                    rememberSharedContentState(key = "text"),
                     animatedVisibilityScope
                 )
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .height(0.dp)
+                    .absoluteOffset(y= (-20).dp)
+            )
+            Card(
+                modifier = Modifier
+                    .sharedElement(
+                        rememberSharedContentState(key = pokemon.name),
+                        animatedVisibilityScope
+                    )
+                    .padding(16.dp)
+                    .fillMaxSize(),
             ) {
-                Row(modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween) {
-                    IconButton(onClick = {
-                        onBack()
-                    }) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, "voltar")
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = {
+                            onBack()
+                        }) {
+                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, "voltar")
+                        }
+                        IconButton(onClick = {
+                            val index = pokemons.indexOf(pokemon)
+                            pokemons[index] = pokemon.copy(fav = !pokemon.fav)
+                        }) {
+                            Icon(
+                                if (pokemon.fav) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+                                "favoritar",
+                                modifier = Modifier.sharedElement(
+                                    rememberSharedContentState(key = "${pokemon.name}-fav"),
+                                    animatedVisibilityScope
+                                )
+                            )
+                        }
                     }
-                    IconButton(onClick = {
-                        val index = pokemons.indexOf(pokemon)
-                        pokemons[index] = pokemon.copy(fav = !pokemon.fav)
-                    }) {
-                        Icon(
-                            if (pokemon.fav) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                            "favoritar",
-                            modifier=Modifier.sharedElement(
-                                rememberSharedContentState(key = "${pokemon.name}-fav"),
+                    Image(
+                        painter = painterResource(id = pokemon.imgId),
+                        contentDescription = "${pokemon.name} Image",
+                        modifier = Modifier
+                            .sharedElement(
+                                rememberSharedContentState(key = "${pokemon}-image"),
                                 animatedVisibilityScope
                             )
-                        )
-                    }
-                }
-                Image(
-                    painter = painterResource(id = pokemon.imgId),
-                    contentDescription = "${pokemon.name} Image",
-                    modifier = Modifier
-                        .sharedElement(
-                            rememberSharedContentState(key = "${pokemon}-image"),
+                            .size(200.dp)
+                            .clip(CircleShape)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = pokemon.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "${pokemon}-name"),
                             animatedVisibilityScope
                         )
-                        .size(200.dp)
-                        .clip(CircleShape)
-                )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = pokemon.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier=Modifier.sharedElement(
-                        rememberSharedContentState(key = "${pokemon}-name"),
-                        animatedVisibilityScope)
-
-                )
-                Text(
-                    text = pokemon.location,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = pokemon.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                    )
+                    Text(
+                        text = pokemon.location,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = pokemon.description,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }
 }
 @Composable
 fun ListItem(pokemon: Pokemon,
+             index: Int,
+             scrollToItem: (Int)->Unit,
              onPokemonSelected: (Pokemon) -> Unit,
              sharedTransitionScope: SharedTransitionScope,
              animatedVisibilityScope: AnimatedVisibilityScope) {
@@ -484,7 +543,10 @@ fun ListItem(pokemon: Pokemon,
                 )
                 .fillMaxWidth()
                 .padding(8.dp)
-                .clickable { onPokemonSelected(pokemon) },
+                .clickable {
+                    scrollToItem(index)
+                    onPokemonSelected(pokemon)
+                           },
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Column(
@@ -527,8 +589,7 @@ fun ListItem(pokemon: Pokemon,
                         }
                     }
                     TextButton(onClick = {
-                        val index = pokemons.indexOf(pokemon)
-                        pokemons[index] = pokemon.copy(fav = !pokemon.fav)
+                        pokemons[pokemons.indexOf(pokemon)] = pokemon.copy(fav = !pokemon.fav)
                     }) {
                         Icon(
                             painterResource(if (pokemon.fav) R.drawable.favfill else R.drawable.favout),
