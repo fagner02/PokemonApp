@@ -3,6 +3,8 @@
 package com.example.myapplication.zooapp
 
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -149,8 +151,8 @@ val eevee = Pokemon(
     fav= false
 )
 val pokemons = mutableStateListOf(pikachu, charmander, bulbasaur, squirtle, eevee)
-class PokemonActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
+class PokemonActivity() : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -357,6 +359,7 @@ class PokemonActivity : ComponentActivity() {
             }
         }
     }
+
 }
 
 @Composable
