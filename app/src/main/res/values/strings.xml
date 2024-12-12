@@ -8,4 +8,6 @@
     <string name="title_activity_animal">Animal</string>
     <string name="title_activity_animal_screen">AnimalScreen</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_theme_app">ThemeApp</string>
+    <string name="title_activity_draw_content">DrawContent</string>
 </resources>

@@ -1,26 +1,37 @@
 [versions]
-activityCompose = "1.3.1"
+ktor-client = "2.3.6" #latest version of Ktor
+activityCompose = "1.9.3"
 agp = "8.6.0"
 kotlin = "1.9.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-appcompat = "1.6.1"
+appcompat = "1.7.0"
 lifecycleRuntimeKtx = "2.8.7"
-material = "1.10.0"
+material = "1.12.0"
 activity = "1.9.3"
-constraintlayout = "2.1.4"
+constraintlayout = "2.2.0"
 material3Android = "1.3.1"
 materialVersion = "1.7.5"
+mePokekotlin = "<VERSION>"
+pokekotlin = "2.3.1"
 runtimeLivedata = "1.7.5"
 ui = "1.7.5"
-composeBom = "2024.04.01"
+composeBom = "2024.11.00"
 navigationCompose = "2.8.4"
-media3Exoplayer = "1.4.1"
-media3Ui = "1.4.1"
+media3Exoplayer = "1.5.0"
+media3Ui = "1.5.0"
+transportApi = "4.0.0"
 
 [libraries]
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-client" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor-client" }
+ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor-client" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor-client" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-client" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor-client" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-client" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 androidx-activity-compose-v131 = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +57,10 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3Ui" }
+me-pokekotlin = { module = "me.sargunvohra.lib:pokekotlin", version.ref = "mePokekotlin" }
+pokeapi-pokekotlin = { module = "com.github.PokeAPI:pokekotlin", version.ref = "pokekotlin" }
+pokekotlin = { module = "me.sargunvohra.lib:pokekotlin", version = "2.0.0" }
+transport-api = { group = "com.google.android.datatransport", name = "transport-api", version.ref = "transportApi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
