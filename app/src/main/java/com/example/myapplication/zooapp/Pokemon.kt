@@ -75,29 +75,41 @@ import android.graphics.Color.parseColor;
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DrawerState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.example.myapplication.R
+import com.example.myapplication.zooapp.components.BottomBar
+import com.example.myapplication.zooapp.components.TopBar
 import com.example.myapplication.zooapp.ui.theme.MyApplicationTheme
+import com.example.myapplication.zooapp.ui.theme.typeColors
 import com.google.gson.Gson
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.url as _url
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.sargunvohra.lib.pokekotlin.model.NamedApiResourceList
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.serialization.Serializable
 
+@Serializable
+data class ApiResource(val url: String, val name:String)
+@Serializable
+data class ApiResourceList(val next: String?, val previuous: String?, val results: List<ApiResource>)
 @Serializable
 data class Sprites(val front_default: String?)
 @Serializable
@@ -109,13 +121,16 @@ data class Pokemon(val name: String, val types: List<TypeSlot>, val sprites: Spr
 
 class Service {
     private val client=HttpClient()
-    suspend fun getList(): List<Pokemon> {
+    private val api = "https://pokeapi.co/api/v2"
+    private var next: String? = "${api}/pokemon?offset=0&limit=10"
+    suspend fun getList(): MutableList<Pokemon> {
         try {
             val res =
-                client.get { _url("https://pokeapi.co/api/v2/pokemon?offset=0&limit=20") }
+                client.get { _url("$next") }
             val resourceList =
-                Gson().fromJson(res.bodyAsText(), NamedApiResourceList::class.java)
+                Gson().fromJson(res.bodyAsText(), ApiResourceList::class.java)
             val pokemons:MutableList<Pokemon> = emptyList<Pokemon>().toMutableList()
+            println(next)
             for (resource in resourceList.results){
                 val pokeRes =
                     HttpClient().get { _url("https://pokeapi.co/api/v2/pokemon/${resource.name}") }
@@ -123,44 +138,38 @@ class Service {
                     Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
                 pokemons.add(pokemon)
             }
-            return pokemons.toList();
+            next = resourceList.next;
+            return pokemons;
         }
             catch (e:Error) {
-                return  emptyList()
+                return  mutableStateListOf()
             }
     }
+    suspend fun getByName(name: String): Pokemon? {
+        try {
+            val res =
+                client.get { _url("${api}/pokemon/${name}") }
+            val pokemon =
+                Gson().fromJson(res.bodyAsText(), Pokemon::class.java)
+            return pokemon;
+        }
+        catch (e:Error) {
+            return null
+        }
+    }
 }
-val typeColors: Map<String, String> = mapOf(
-    "normal" to "#A8A878",
-    "fire" to "#F08030",
-    "water" to "#6890F0",
-    "electric" to "#F8D030",
-    "grass" to "#78C850",
-    "ice" to "#98D8D8",
-    "fighting" to "#C03028",
-    "poison" to "#A040A0",
-    "ground" to "#E0C068",
-    "flying" to "#A890F0",
-    "psychic" to "#F85888",
-    "bug" to "#A8B820",
-    "rock" to "#B8A038",
-    "ghost" to "#705898",
-    "dragon" to "#7038F8",
-    "dark" to "#705848",
-    "steel" to "#B8B8D0",
-    "fairy" to "#EE99AC"
-)
-
 val favList: MutableList<String> = mutableStateListOf();
+
 class PokemonActivity : ComponentActivity() {
     private val service=Service()
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
-            val list = produceState(initialValue = emptyList<Pokemon>(), producer = { value = service.getList() })
+            val list: MutableList<Pokemon> = remember {  emptyList<Pokemon>().toMutableStateList()}
+
             MyApplicationTheme {
                 var route by remember { mutableStateOf("list") }
                 val navController = rememberNavController()
@@ -193,96 +202,34 @@ class PokemonActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                        },
+                        }
+                    ) {
 
-                        ) {
                         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                             Scaffold(modifier = Modifier.fillMaxSize(),
-                                bottomBar = {
-                                    Surface(
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) {
-                                        Row(
-                                            Modifier
-                                                .windowInsetsPadding(windowInsets)
-                                                .fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceAround,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        )
-                                        {
-                                            TextButton(
-                                                enabled = route != "list",
-                                                colors = ButtonDefaults.textButtonColors(),
-                                                onClick = { navController.navigate("list") },
-                                            ) {
-                                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                    Icon(
-                                                        painterResource(R.drawable.home),
-                                                        contentDescription = "início"
-                                                    )
-                                                    Text("início")
-                                                }
-                                            }
-
-                                            TextButton(enabled = route != "fav",
-                                                onClick = { navController.navigate("fav") }) {
-                                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                    Icon(
-                                                        painterResource(R.drawable.favout),
-                                                        contentDescription = "favoritos"
-                                                    )
-                                                    Text("favoritos")
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                topBar = {
-                                    val title: String =
-                                        when (route) {
-                                            "list"->"Início"
-                                            "fav"-> "Favoritos"
-                                            else -> navController.currentBackStackEntry?.arguments?.getString("pokemon")
-                                                ?:
-                                            ""
-                                        }
-                                    var showDropDownMenu by remember { mutableStateOf(false) }
-                                    TopAppBar(title = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Image(
-                                                painterResource(R.drawable.poke),
-                                                contentDescription = "icone"
-                                            )
-                                            Spacer(modifier = Modifier.width(16.dp))
-                                            Text(title)
-                                        }
-                                    },
-                                        actions = {
-                                            IconButton(onClick = {
-                                                scope.launch {
-                                                    drawerState.apply { if (isClosed) open() else close() }
-                                                }
-                                            }) {
-                                                Icon(painterResource(R.drawable.menu), "menu",
-                                                    Modifier.size(24.dp))
-                                            }
-                                            DropdownMenu(
-                                                showDropDownMenu,
-                                                onDismissRequest = { showDropDownMenu = false }) {
-                                                DropdownMenuItem(
-                                                    onClick = {},
-                                                    text = { Text("ajuda") })
-                                                DropdownMenuItem(
-                                                    onClick = {},
-                                                    text = { Text("config") })
-                                            }
-                                        }
-                                    )
-                                }
+                                bottomBar = { BottomBar(route, navController) },
+                                topBar = { TopBar(route, navController, scope, drawerState) }
                             ) { innerPadding ->
                                 var searchQuery by remember { mutableStateOf("") }
                                 val listState = rememberLazyListState()
                                 var favListState = rememberLazyListState()
+
+                                val reachedBottom by remember {
+                                    derivedStateOf {
+                                        val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+                                        println("read-${listState.layoutInfo.totalItemsCount}-${last?.index?: "null"}")
+                                        last == null ||
+                                                last.index != 0 && listState.layoutInfo.totalItemsCount <= last.index+5
+                                    }
+                                }
+
+                                LaunchedEffect(reachedBottom) {
+                                    if(reachedBottom){
+                                        println("and did")
+                                        list.addAll(service.getList())
+                                    }
+                                }
+
                                 NavHost(navController, startDestination = "list") {
                                     composable("list") {
                                         var selected by remember { mutableStateOf("") }
@@ -290,7 +237,7 @@ class PokemonActivity : ComponentActivity() {
                                             AnimatedContent(selected, label = "hero") { state ->
                                                 if (state == "") {
                                                     PokemonList(
-                                                        list.value,
+                                                        list,
                                                         animatedVisibilityScope = this@AnimatedContent,
                                                         sharedTransitionScope = this@SharedTransitionLayout,
                                                         modifier = Modifier.padding(innerPadding),
@@ -301,11 +248,12 @@ class PokemonActivity : ComponentActivity() {
                                                         onInputQuery = { input ->
                                                             searchQuery = input
                                                         },
-                                                        state = listState
+                                                        state = listState,
+
                                                     )
                                                 } else {
                                                     val pokemon: Pokemon? by remember {
-                                                        mutableStateOf(list.value.find { it.name == state })
+                                                        mutableStateOf(list.find { it.name == state })
                                                     }
                                                     if (pokemon != null) {
                                                         DetailsScreen(
@@ -326,8 +274,21 @@ class PokemonActivity : ComponentActivity() {
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "fav") { state ->
                                                 if (state == "") {
+                                                    val favs: MutableList<Pokemon> = remember {
+                                                        emptyList<Pokemon>().toMutableList()
+                                                    }
+                                                    var itemCount by remember { mutableStateOf(0) }
+                                                    LaunchedEffect(itemCount) {
+                                                        if(itemCount < favList.size){
+                                                            val poke = service.getByName(favList[itemCount])
+                                                            if(poke != null){
+                                                                favs.add(poke)
+                                                            }
+                                                            itemCount += 1
+                                                        }
+                                                    }
                                                     PokemonList(
-                                                        list.value.filter { favList.contains(it.name) },
+                                                        list.filter { favList.contains(it.name) },
                                                         modifier = Modifier.padding(innerPadding),
                                                         animatedVisibilityScope = this@AnimatedContent,
                                                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -338,7 +299,7 @@ class PokemonActivity : ComponentActivity() {
                                                     )
                                                 } else {
                                                     val pokemon: Pokemon? by remember {
-                                                        mutableStateOf(list.value.find { it.name == state })
+                                                        mutableStateOf(list.find { it.name == state })
                                                     }
                                                     if (pokemon != null) {
                                                         DetailsScreen(
@@ -355,7 +316,6 @@ class PokemonActivity : ComponentActivity() {
                                         }
                                     }
                                 }
-
                             }
                         }
                     }
@@ -663,18 +623,6 @@ fun ListItem(
                         )
                     }
                 }
-//                    Spacer(modifier = Modifier.height(16.dp))
-//                Text(
-//                    text = pokemon.nature,
-//                    style = MaterialTheme.typography.bodyMedium
-//                )
-//                    Spacer(modifier = Modifier.height(8.dp))
-//                    Text(
-//                        text = "Curiosidade: ${pokemon!!.abilities}",
-//                        style = MaterialTheme.typography.bodySmall,
-//                        color = MaterialTheme.colorScheme.secondary
-//                    )
-//                    Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
