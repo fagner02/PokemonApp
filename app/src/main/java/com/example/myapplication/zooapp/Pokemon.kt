@@ -274,19 +274,6 @@ class PokemonActivity : ComponentActivity() {
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "fav") { state ->
                                                 if (state == "") {
-                                                    val favs: MutableList<Pokemon> = remember {
-                                                        emptyList<Pokemon>().toMutableList()
-                                                    }
-                                                    var itemCount by remember { mutableStateOf(0) }
-                                                    LaunchedEffect(itemCount) {
-                                                        if(itemCount < favList.size){
-                                                            val poke = service.getByName(favList[itemCount])
-                                                            if(poke != null){
-                                                                favs.add(poke)
-                                                            }
-                                                            itemCount += 1
-                                                        }
-                                                    }
                                                     PokemonList(
                                                         list.filter { favList.contains(it.name) },
                                                         modifier = Modifier.padding(innerPadding),
