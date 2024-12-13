@@ -130,7 +130,6 @@ class Service {
             val resourceList =
                 Gson().fromJson(res.bodyAsText(), ApiResourceList::class.java)
             val pokemons:MutableList<Pokemon> = emptyList<Pokemon>().toMutableList()
-            println(next)
             for (resource in resourceList.results){
                 val pokeRes =
                     HttpClient().get { _url("https://pokeapi.co/api/v2/pokemon/${resource.name}") }
@@ -217,7 +216,6 @@ class PokemonActivity : ComponentActivity() {
                                 val reachedBottom by remember {
                                     derivedStateOf {
                                         val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-                                        println("read-${listState.layoutInfo.totalItemsCount}-${last?.index?: "null"}")
                                         last == null ||
                                                 last.index != 0 && listState.layoutInfo.totalItemsCount <= last.index+5
                                     }
@@ -225,7 +223,6 @@ class PokemonActivity : ComponentActivity() {
 
                                 LaunchedEffect(reachedBottom) {
                                     if(reachedBottom){
-                                        println("and did")
                                         list.addAll(service.getList())
                                     }
                                 }
@@ -355,7 +352,6 @@ fun PokemonList(
                                 selecting = false
                                 timedout = false
                                 onSelectPokemon(pokemonName.name)
-                                println("scroll completed")
                             }
                         }
                     }
@@ -394,7 +390,6 @@ fun DetailsScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope) {
     with(sharedTransitionScope) {
-        println("entered")
         Column (modifier = modifier
         ){
             TextField(
