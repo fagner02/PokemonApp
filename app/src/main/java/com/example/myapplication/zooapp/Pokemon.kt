@@ -12,9 +12,11 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +36,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.BottomNavigationDefaults.windowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -67,6 +71,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import android.graphics.Color.parseColor;
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -87,103 +96,63 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.sargunvohra.lib.pokekotlin.model.NamedApiResourceList
 import kotlin.time.Duration.Companion.milliseconds
-import androidx.compose.runtime.State
-import com.google.gson.JsonObject
+import kotlinx.serialization.Serializable
 
-data class Pokemon (
-    val name: String,
-    val type: Pair<String, String>,
-    val nature: String,
-    val abilities: String,
-    val imgId: Int,
-    val description: String,
-    val location: String,
-    val fav: Boolean
-)
+@Serializable
+data class Sprites(val front_default: String?)
+@Serializable
+data class Type(val name: String)
+@Serializable
+data class TypeSlot(val slot: Int, val type: Type)
+@Serializable
+data class Pokemon(val name: String, val types: List<TypeSlot>, val sprites: Sprites)
 
-val pikachu = Pokemon(
-    name = "Pikachu",
-    type = Pair("Electric", ""),
-    nature = "Hardy",
-    abilities = "Static, Lightning Rod",
-    imgId = R.drawable.pika,
-    description = "Um rato elétrico que armazena eletricidade em suas bochechas.",
-    location = "Região de Kanto",
-    fav= false
-)
-
-val charmander = Pokemon(
-    name = "Charmander",
-    type = Pair("Fire", ""),
-    nature = "Timid",
-    abilities = "Blaze",
-    imgId = R.drawable.chara,
-    description = "Uma pequena salamandra com uma chama na ponta da cauda.",
-    location = "Região de Kanto",
-    fav= false
-)
-
-val bulbasaur = Pokemon(
-    name = "Bulbasaur",
-    type = Pair("Grass", "Poison"),
-    nature = "Quiet",
-    abilities = "Overgrow",
-    imgId = R.drawable.bulb,
-    description = "Uma pequena criatura com uma semente nas costas.",
-    location = "Região de Kanto",
-    fav= false
-)
-
-val squirtle = Pokemon(
-    name = "Squirtle",
-    type = Pair("Water", ""),
-    nature = "Bold",
-    abilities = "Torrent",
-    imgId = R.drawable.turt,
-    description = "Uma pequena tartaruga que se esconde em sua carapaça.",
-    location = "Região de Kanto",
-    fav= false
-)
-
-val eevee = Pokemon(
-    name = "Eevee",
-    type = Pair("Normal", ""),
-    nature = "Calm",
-    abilities = "Run Away",
-    imgId = R.drawable.eve,
-    description = "Um Pokémon com genes instáveis que podem evoluir de várias maneiras.",
-    location = "Região de Kanto",
-    fav= false
-)
-
-val pokemons = mutableStateListOf(pikachu, charmander, bulbasaur, squirtle, eevee)
-class Service(){
+class Service {
     private val client=HttpClient()
-    suspend fun getList(): List<JsonObject> {
+    suspend fun getList(): List<Pokemon> {
         try {
             val res =
-                HttpClient().get { _url("https://pokeapi.co/api/v2/pokemon?offset=20&limit=20") }
-            val list =
+                client.get { _url("https://pokeapi.co/api/v2/pokemon?offset=0&limit=20") }
+            val resourceList =
                 Gson().fromJson(res.bodyAsText(), NamedApiResourceList::class.java)
-            val p:MutableList<JsonObject> = emptyList<JsonObject>().toMutableList()
-            for (pp in list.results){
-                val res =
-                    HttpClient().get { _url("https://pokeapi.co/api/v2/pokemon/${pp.name}") }
-                val temp =
-                    Gson().fromJson(res.bodyAsText(), JsonObject::class.java)
-                println(temp.get("name").asString)
-                println(temp.get("sprites").asJsonObject.get("front_default").asString)
-                p.add(temp)
+            val pokemons:MutableList<Pokemon> = emptyList<Pokemon>().toMutableList()
+            for (resource in resourceList.results){
+                val pokeRes =
+                    HttpClient().get { _url("https://pokeapi.co/api/v2/pokemon/${resource.name}") }
+                val pokemon =
+                    Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
+                pokemons.add(pokemon)
             }
-            return p.toList();
+            return pokemons.toList();
         }
             catch (e:Error) {
                 return  emptyList()
             }
     }
 }
-val favList: List<String> = mutableStateListOf();
-class PokemonActivity() : ComponentActivity() {
+val typeColors: Map<String, String> = mapOf(
+    "normal" to "#A8A878",
+    "fire" to "#F08030",
+    "water" to "#6890F0",
+    "electric" to "#F8D030",
+    "grass" to "#78C850",
+    "ice" to "#98D8D8",
+    "fighting" to "#C03028",
+    "poison" to "#A040A0",
+    "ground" to "#E0C068",
+    "flying" to "#A890F0",
+    "psychic" to "#F85888",
+    "bug" to "#A8B820",
+    "rock" to "#B8A038",
+    "ghost" to "#705898",
+    "dragon" to "#7038F8",
+    "dark" to "#705848",
+    "steel" to "#B8B8D0",
+    "fairy" to "#EE99AC"
+)
+
+val favList: MutableList<String> = mutableStateListOf();
+class PokemonActivity : ComponentActivity() {
     private val service=Service()
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -191,7 +160,7 @@ class PokemonActivity() : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val list = produceState(initialValue = emptyList<JsonObject>(), producer = { value = service.getList() })
+            val list = produceState(initialValue = emptyList<Pokemon>(), producer = { value = service.getList() })
             MyApplicationTheme {
                 var route by remember { mutableStateOf("list") }
                 val navController = rememberNavController()
@@ -203,17 +172,7 @@ class PokemonActivity() : ComponentActivity() {
 
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
-//                LaunchedEffect("ki") {
-//                    scope.launch {
-//                        val res =
-//                            HttpClient().get { _url("https://pokeapi.co/api/v2/pokemon?offset=20&limit=20") }
-//                        val list =
-//                            Gson().fromJson(res.bodyAsText(), NamedApiResourceList::class.java)
-//                        pokemonList.clear()
-//                        list.results.forEach { x -> pokemonList.add(x.name) }
-//                        println(pokemonList.size)
-//                    }
-//                }
+
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                     ModalNavigationDrawer(
                         drawerState = drawerState,
@@ -279,12 +238,14 @@ class PokemonActivity() : ComponentActivity() {
                                     }
                                 },
                                 topBar = {
-                                    val title: String
-                                    if (route == "list") title = "Início"
-                                    else if (route == "fav") title = "Favoritos"
-                                    else title =
-                                        navController.currentBackStackEntry?.arguments?.getString("pokemon")
-                                            ?: ""
+                                    val title: String =
+                                        when (route) {
+                                            "list"->"Início"
+                                            "fav"-> "Favoritos"
+                                            else -> navController.currentBackStackEntry?.arguments?.getString("pokemon")
+                                                ?:
+                                            ""
+                                        }
                                     var showDropDownMenu by remember { mutableStateOf(false) }
                                     TopAppBar(title = {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -329,7 +290,7 @@ class PokemonActivity() : ComponentActivity() {
                                             AnimatedContent(selected, label = "hero") { state ->
                                                 if (state == "") {
                                                     PokemonList(
-                                                        list,
+                                                        list.value,
                                                         animatedVisibilityScope = this@AnimatedContent,
                                                         sharedTransitionScope = this@SharedTransitionLayout,
                                                         modifier = Modifier.padding(innerPadding),
@@ -343,12 +304,11 @@ class PokemonActivity() : ComponentActivity() {
                                                         state = listState
                                                     )
                                                 } else {
-                                                    println("loadpoke-${state}")
-                                                    val pokemon: JsonObject? by remember {
-                                                        mutableStateOf(list.value.find { it.get("name").asString == state })}
-                                                    println("loaded-${state}")
+                                                    val pokemon: Pokemon? by remember {
+                                                        mutableStateOf(list.value.find { it.name == state })
+                                                    }
                                                     if (pokemon != null) {
-                                                        PokemonScreen(
+                                                        DetailsScreen(
                                                             pokemon!!,
                                                             modifier = Modifier.padding(innerPadding),
                                                             { selected = "" },
@@ -366,27 +326,30 @@ class PokemonActivity() : ComponentActivity() {
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "fav") { state ->
                                                 if (state == "") {
-//                                                    PokemonList(
-//                                                        pokemonList.filter { favList.contains(it) },
-//                                                        modifier = Modifier.padding(innerPadding),
-//                                                        animatedVisibilityScope = this@AnimatedContent,
-//                                                        sharedTransitionScope = this@SharedTransitionLayout,
-//                                                        onInputQuery = { searchQuery = it },
-//                                                        onSelectPokemon = { selected = it },
-//                                                        searchQuery = searchQuery,
-//                                                        state = favListState
-//                                                    )
+                                                    PokemonList(
+                                                        list.value.filter { favList.contains(it.name) },
+                                                        modifier = Modifier.padding(innerPadding),
+                                                        animatedVisibilityScope = this@AnimatedContent,
+                                                        sharedTransitionScope = this@SharedTransitionLayout,
+                                                        onInputQuery = { searchQuery = it },
+                                                        onSelectPokemon = { selected = it },
+                                                        searchQuery = searchQuery,
+                                                        state = favListState
+                                                    )
                                                 } else {
-//                                                    var pokemon = null;
-//                                                        pokemonsList.first { it.name == state }
-//                                                    PokemonScreen(
-//                                                        pokemon,
-//                                                        modifier = Modifier.padding(innerPadding),
-//                                                        { selected = "" },
-//                                                        searchQuery,
-//                                                        this@SharedTransitionLayout,
-//                                                        this@AnimatedContent
-//                                                    )
+                                                    val pokemon: Pokemon? by remember {
+                                                        mutableStateOf(list.value.find { it.name == state })
+                                                    }
+                                                    if (pokemon != null) {
+                                                        DetailsScreen(
+                                                            pokemon!!,
+                                                            modifier = Modifier.padding(innerPadding),
+                                                            { selected = "" },
+                                                            searchQuery,
+                                                            this@SharedTransitionLayout,
+                                                            this@AnimatedContent
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -400,12 +363,11 @@ class PokemonActivity() : ComponentActivity() {
             }
         }
     }
-
 }
 
 @Composable
 fun PokemonList(
-    list: State<List<JsonObject>>,
+    list: List<Pokemon>,
     modifier: Modifier,
     onSelectPokemon: (String)-> Unit,
     onInputQuery: (String)->Unit,
@@ -434,7 +396,7 @@ fun PokemonList(
                 modifier = Modifier.padding(horizontal = 8.dp),
                 state = state
             ) {
-                itemsIndexed(list.value) { index, pokemonName ->
+                itemsIndexed(list.filter { it.name.contains(searchQuery) }) { index, pokemonName ->
                     var selecting by remember { mutableStateOf(false) }
                     var timedout by remember { mutableStateOf(false) }
                     if (selecting && (state.isScrollInProgress && !timedout)) {
@@ -445,7 +407,7 @@ fun PokemonList(
                                 }
                                 selecting = false
                                 timedout = false
-                                onSelectPokemon(pokemonName.get("name").asString)
+                                onSelectPokemon(pokemonName.name)
                                 println("scroll completed")
                             }
                         }
@@ -477,8 +439,8 @@ fun PokemonList(
     }
 }
 @Composable
-fun PokemonScreen(
-    pokemon: JsonObject,
+fun DetailsScreen(
+    pokemon: Pokemon,
     modifier: Modifier,
     onBack: ()->Unit,
     searchQuery: String,
@@ -503,7 +465,7 @@ fun PokemonScreen(
             Card(
                 modifier = Modifier
                     .sharedElement(
-                        rememberSharedContentState(key = pokemon.get("name").asString),
+                        rememberSharedContentState(key = pokemon.name),
                         animatedVisibilityScope
                     )
                     .padding(16.dp)
@@ -522,26 +484,29 @@ fun PokemonScreen(
                         }) {
                             Icon(Icons.AutoMirrored.Outlined.ArrowBack, "voltar")
                         }
-//                        IconButton(onClick = {
-//                            val index = pokemons.indexOf(pokemon)
-//                            pokemons[index] = pokemon.copy(fav = !pokemon.fav)
-//                        }) {
-//                            Icon(
-//                                if (pokemon.fav) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-//                                "favoritar",
-//                                modifier = Modifier.sharedElement(
-//                                    rememberSharedContentState(key = "${pokemon.get("name").asString}-fav"),
-//                                    animatedVisibilityScope
-//                                )
-//                            )
-//                        }
+                        IconButton(onClick = {
+                            if (favList.contains(pokemon.name)) {
+                                favList.remove(pokemon.name)
+                            } else {
+                                favList.add(pokemon.name)
+                            }
+                        }) {
+                            Icon(
+                                if (favList.contains(pokemon.name)) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+                                "favoritar",
+                                modifier = Modifier.sharedElement(
+                                    rememberSharedContentState(key = "${pokemon.name}-fav"),
+                                    animatedVisibilityScope
+                                )
+                            )
+                        }
                     }
                     AsyncImage(
-                        pokemon.get("sprites").asJsonObject.get("front_default").asString,
-                        contentDescription = "${pokemon.get("name").asString} Image",
+                        pokemon.sprites.front_default,
+                        contentDescription = "${pokemon.name} Image",
                         modifier = Modifier
                             .sharedElement(
-                                rememberSharedContentState(key = "${pokemon.get("name").asString}-image"),
+                                rememberSharedContentState(key = "${pokemon.name}-image"),
                                 animatedVisibilityScope
                             )
                             .size(200.dp)
@@ -550,23 +515,45 @@ fun PokemonScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = pokemon.get("name").asString,
+                        text = pokemon.name,
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.sharedElement(
-                            rememberSharedContentState(key = "${pokemon.get("name").asString}-name"),
+                            rememberSharedContentState(key = "${pokemon.name}-name"),
                             animatedVisibilityScope
                         )
 
                     )
-//                    Text(
-//                        text = pokemon.location,
-//                        style = MaterialTheme.typography.bodySmall
-//                    )
-//                    Spacer(modifier = Modifier.height(16.dp))
-//                    Text(
-//                        text = pokemon.description,
-//                        style = MaterialTheme.typography.bodyMedium
-//                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.sharedElement(
+                            rememberSharedContentState(key = "${pokemon.name}-type"),
+                            animatedVisibilityScope
+                        )) {
+                        pokemon.types.forEach { type ->
+                            Box(
+                                modifier = Modifier
+                                    .wrapContentSize()
+                                    .border(
+                                        1.dp,
+                                        Color.White,
+                                        shape = RoundedCornerShape(25)
+                                    )
+                                    .clip(RoundedCornerShape(25))
+                                    .background(
+                                        color = Color(
+                                            parseColor(
+                                                typeColors[type.type.name] ?: "#000000"
+                                            )
+                                        )
+                                    )
+                            ) {
+                                Text(
+                                    text = type.type.name,
+                                    modifier = Modifier.padding(horizontal = 5.dp),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -574,7 +561,7 @@ fun PokemonScreen(
 }
 @Composable
 fun ListItem(
-    pokemon: JsonObject,
+    pokemon: Pokemon,
     index: Int,
     scrollToItem: (Int)->Unit,
     sharedTransitionScope: SharedTransitionScope,
@@ -583,7 +570,7 @@ fun ListItem(
         Card(
             modifier = Modifier
                 .sharedElement(
-                    rememberSharedContentState(key = pokemon.get("name").asString),
+                    rememberSharedContentState(key = pokemon.name),
                     animatedVisibilityScope
                 )
                 .fillMaxWidth()
@@ -605,12 +592,12 @@ fun ListItem(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         AsyncImage(
-                            pokemon.get("sprites").asJsonObject.get("front_default").asString,
-                            contentDescription = "${pokemon.get("name").asString} Image",
+                            pokemon.sprites.front_default,
+                            contentDescription = "${pokemon.name} Image",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .sharedElement(
-                                    rememberSharedContentState(key = "${pokemon.get("name").asString}-image"),
+                                    rememberSharedContentState(key = "${pokemon.name}-image"),
                                     animatedVisibilityScope
                                 )
                                 .size(80.dp)
@@ -619,32 +606,62 @@ fun ListItem(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
-                                text = pokemon.get("name").asString,
+                                text = pokemon.name,
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.sharedElement(
-                                    rememberSharedContentState(key = "${pokemon.get("name").asString}-name"),
+                                    rememberSharedContentState(key = "${pokemon.name}-name"),
                                     animatedVisibilityScope
                                 )
                             )
-//                                Text(
-//                                    text = pokemon!!.types[0].type.name + "" + pokemon!!.types[1].type.name,
-//                                    style = MaterialTheme.typography.bodySmall
-//                                )
+                            Row(horizontalArrangement = Arrangement.spacedBy(5.dp),
+                                modifier = Modifier.sharedElement(
+                                    rememberSharedContentState(key = "${pokemon.name}-type"),
+                                    animatedVisibilityScope
+                                )) {
+                                pokemon.types.forEach { type ->
+                                    Box(
+                                        modifier = Modifier
+                                            .wrapContentSize()
+                                            .border(
+                                                1.dp,
+                                                Color.White,
+                                                shape = RoundedCornerShape(25)
+                                            )
+                                            .clip(RoundedCornerShape(25))
+                                            .background(
+                                                color = Color(
+                                                    parseColor(
+                                                        typeColors[type.type.name] ?: "#000000"
+                                                    )
+                                                )
+                                            )
+                                    ) {
+                                        Text(
+                                            text = type.type.name,
+                                            modifier = Modifier.padding(horizontal = 5.dp),
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
-//                        TextButton(onClick = {
-//                        pokemons[pokemons.indexOf(pokemon)] = pokemon.copy(fav = !pokemon.fav)
-//                        }) {
-//                        Icon(
-//                            painterResource(if (pokemon.fav) R.drawable.favfill else R.drawable.favout),
-//                            contentDescription = "favoritar",
-//                            modifier = Modifier.sharedElement(
-//                                rememberSharedContentState(key = "${pokemonName}-fav"),
-//                                animatedVisibilityScope
-//                            )
-//                        )
-
-//                        }
+                    TextButton(onClick = {
+                        if (favList.contains(pokemon.name)) {
+                            favList.remove(pokemon.name)
+                        } else {
+                            favList.add(pokemon.name)
+                        }
+                    }) {
+                        Icon(
+                            painterResource(if (favList.contains(pokemon.name)) R.drawable.favfill else R.drawable.favout),
+                            contentDescription = "favoritar",
+                            modifier = Modifier.sharedElement(
+                                rememberSharedContentState(key = "${pokemon.name}-fav"),
+                                animatedVisibilityScope
+                            )
+                        )
+                    }
                 }
 //                    Spacer(modifier = Modifier.height(16.dp))
 //                Text(
