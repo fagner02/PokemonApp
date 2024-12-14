@@ -97,7 +97,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApiResource(val url: String, val name:String)
 @Serializable
-data class ApiResourceList(val next: String?, val previuous: String?, val results: List<ApiResource>)
+data class ApiResourceList(val next: String?, val previous: String?, val results: List<ApiResource>)
 @Suppress("PropertyName")
 @Serializable
 data class Sprites(val front_default: String?)
