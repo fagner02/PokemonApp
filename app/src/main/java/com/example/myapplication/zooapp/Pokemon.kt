@@ -2,6 +2,11 @@
 
 package com.example.myapplication.zooapp
 
+import androidx.compose.animation.core.Transition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.updateTransition
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -62,19 +67,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import android.graphics.Color.parseColor
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextFieldDefaults.Container
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.media3.container.Mp4Box.ContainerBox
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -93,6 +114,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.serialization.Serializable
+import okhttp3.internal.wait
 
 @Serializable
 data class ApiResource(val url: String, val name:String)
@@ -196,23 +218,15 @@ class PokemonActivity : ComponentActivity() {
 
                                 val reachedBottom by remember {
                                     derivedStateOf {
-
-                                        val last =
-                                            listState.layoutInfo.visibleItemsInfo.lastOrNull()
-                                        val value = (last == null ||
-                                                 listState.layoutInfo.totalItemsCount <= last.index + 5)
-                                        println("value: $value, ${isLoading}, ${last?.index}, ${listState.layoutInfo.totalItemsCount}-${(last?.index ?: 0) +5}")
-                                        value
+                                        val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+                                        (last == null || listState.layoutInfo.totalItemsCount <= last.index + 5)
                                     }
                                 }
 
                                 LaunchedEffect(reachedBottom) {
-                                    println("vv: $reachedBottom")
                                     if (reachedBottom) {
-                                        println("loading")
                                         isLoading=true
                                         list.addAll(service.getList())
-                                        println("loaded")
                                         isLoading=false
                                     }
                                 }
@@ -299,6 +313,7 @@ class PokemonActivity : ComponentActivity() {
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonList(
     list: List<Pokemon>,
@@ -311,19 +326,32 @@ fun PokemonList(
     state: LazyListState,
     isLoading: Boolean) {
     with(sharedTransitionScope) {
+        val interactionSource = remember { MutableInteractionSource() }
         Column(modifier = modifier.fillMaxSize()) {
+
             TextField(
                 value = searchQuery,
-                onValueChange = { onInputQuery(it) },
-                label = { Text("Pesquisar") },
+                onValueChange = {},
+                singleLine = true,
+                shape = RoundedCornerShape(25),
+                colors = TextFieldDefaults.colors().copy(
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                placeholder = { Text("Pesquisar") },
+                trailingIcon = { Icon(Icons.Outlined.Search, contentDescription = "Pesquisar") },
+                enabled = true,
                 modifier = Modifier
                     .sharedElement(
                         rememberSharedContentState(key = "text"),
                         animatedVisibilityScope
                     )
-                    .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
             )
+
+
             val coroutine = rememberCoroutineScope()
 
             LazyColumn(
@@ -373,7 +401,11 @@ fun PokemonList(
                 if (isLoading) {
                     item {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            CircularProgressIndicator(color = Color.White, strokeCap = StrokeCap.Round, strokeWidth = 3.dp)
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeCap = StrokeCap.Round,
+                                strokeWidth = 3.dp
+                            )
                         }
                     }
                 }
@@ -381,6 +413,7 @@ fun PokemonList(
         }
     }
 }
+
 @Composable
 fun DetailsScreen(
     pokemon: Pokemon,
@@ -393,17 +426,30 @@ fun DetailsScreen(
         Column(
             modifier = modifier
         ) {
+            var animate by remember { mutableStateOf(false) }
+            val offset by animateDpAsState(if (animate) (-30).dp else 0.dp,label = "offset")
+            val height by animateDpAsState(targetValue = if (animate) 0.dp else 30.dp, label = "height")
+            LaunchedEffect(true) {
+                animate=true;
+            }
             TextField(
                 value = searchQuery,
                 onValueChange = { },
+                shape = RoundedCornerShape(25),
+                colors = TextFieldDefaults.colors().copy(
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent),
+                trailingIcon = {Icon(Icons.Outlined.Search, contentDescription = "pesquisar")},
                 modifier = Modifier
                     .sharedElement(
                         rememberSharedContentState(key = "text"),
                         animatedVisibilityScope
                     )
                     .fillMaxWidth()
-                    .height(0.dp)
-                    .absoluteOffset(y = (-20).dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .height(height)
+                    .absoluteOffset(y = offset)
             )
             Card(
                 modifier = Modifier
