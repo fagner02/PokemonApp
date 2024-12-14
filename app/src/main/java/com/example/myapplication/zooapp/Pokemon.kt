@@ -61,7 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import android.graphics.Color.parseColor;
+import android.graphics.Color.parseColor
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -98,6 +98,7 @@ import kotlinx.serialization.Serializable
 data class ApiResource(val url: String, val name:String)
 @Serializable
 data class ApiResourceList(val next: String?, val previuous: String?, val results: List<ApiResource>)
+@Suppress("PropertyName")
 @Serializable
 data class Sprites(val front_default: String?)
 @Serializable
@@ -125,27 +126,15 @@ class Service {
                     Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
                 pokemons.add(pokemon)
             }
-            next = resourceList.next;
-            return pokemons;
+            next = resourceList.next
+            return pokemons
         }
             catch (e:Error) {
                 return  mutableStateListOf()
             }
     }
-    suspend fun getByName(name: String): Pokemon? {
-        try {
-            val res =
-                client.get { _url("${api}/pokemon/${name}") }
-            val pokemon =
-                Gson().fromJson(res.bodyAsText(), Pokemon::class.java)
-            return pokemon;
-        }
-        catch (e:Error) {
-            return null
-        }
-    }
 }
-val favList: MutableList<String> = mutableStateListOf();
+val favList: MutableList<String> = mutableStateListOf()
 
 class PokemonActivity : ComponentActivity() {
     private val service = Service()
@@ -218,7 +207,7 @@ class PokemonActivity : ComponentActivity() {
                                 }
 
                                 LaunchedEffect(reachedBottom) {
-                                    println("vv: ${reachedBottom}")
+                                    println("vv: $reachedBottom")
                                     if (reachedBottom) {
                                         println("loading")
                                         isLoading=true
@@ -322,12 +311,6 @@ fun PokemonList(
     state: LazyListState,
     isLoading: Boolean) {
     with(sharedTransitionScope) {
-        val t by remember {
-            derivedStateOf {
-                println("rtygb")
-                isLoading
-            }
-        }
         Column(modifier = modifier.fillMaxSize()) {
             TextField(
                 value = searchQuery,
