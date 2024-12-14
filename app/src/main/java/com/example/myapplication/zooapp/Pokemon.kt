@@ -11,7 +11,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.stopScroll
@@ -27,35 +26,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.BottomNavigationDefaults.windowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -64,7 +55,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -75,17 +65,16 @@ import android.graphics.Color.parseColor;
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DrawerState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -100,7 +89,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.url as _url
 import io.ktor.client.statement.bodyAsText
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -160,14 +148,15 @@ class Service {
 val favList: MutableList<String> = mutableStateListOf();
 
 class PokemonActivity : ComponentActivity() {
-    private val service=Service()
+    private val service = Service()
+
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
-            val list: MutableList<Pokemon> = remember {  emptyList<Pokemon>().toMutableStateList()}
+            val list: MutableList<Pokemon> = remember { emptyList<Pokemon>().toMutableStateList() }
 
             MyApplicationTheme {
                 var route by remember { mutableStateOf("list") }
@@ -187,8 +176,10 @@ class PokemonActivity : ComponentActivity() {
                         drawerContent = {
                             ModalDrawerSheet(Modifier.fillMaxWidth(0.6f)) {
                                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                                    Column(modifier = Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
                                         TextButton(onClick = {}) {
                                             Text("Configurações")
                                         }
@@ -211,19 +202,29 @@ class PokemonActivity : ComponentActivity() {
                             ) { innerPadding ->
                                 var searchQuery by remember { mutableStateOf("") }
                                 val listState = rememberLazyListState()
-                                var favListState = rememberLazyListState()
+                                val favListState = rememberLazyListState()
+                                var isLoading by remember{ mutableStateOf( false)}
 
                                 val reachedBottom by remember {
                                     derivedStateOf {
-                                        val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-                                        last == null ||
-                                                last.index != 0 && listState.layoutInfo.totalItemsCount <= last.index+5
+
+                                        val last =
+                                            listState.layoutInfo.visibleItemsInfo.lastOrNull()
+                                        val value = (last == null ||
+                                                 listState.layoutInfo.totalItemsCount <= last.index + 5)
+                                        println("value: $value, ${isLoading}, ${last?.index}, ${listState.layoutInfo.totalItemsCount}-${(last?.index ?: 0) +5}")
+                                        value
                                     }
                                 }
 
                                 LaunchedEffect(reachedBottom) {
-                                    if(reachedBottom){
+                                    println("vv: ${reachedBottom}")
+                                    if (reachedBottom) {
+                                        println("loading")
+                                        isLoading=true
                                         list.addAll(service.getList())
+                                        println("loaded")
+                                        isLoading=false
                                     }
                                 }
 
@@ -246,7 +247,7 @@ class PokemonActivity : ComponentActivity() {
                                                             searchQuery = input
                                                         },
                                                         state = listState,
-
+                                                        isLoading = isLoading
                                                     )
                                                 } else {
                                                     val pokemon: Pokemon? by remember {
@@ -279,7 +280,8 @@ class PokemonActivity : ComponentActivity() {
                                                         onInputQuery = { searchQuery = it },
                                                         onSelectPokemon = { selected = it },
                                                         searchQuery = searchQuery,
-                                                        state = favListState
+                                                        state = favListState,
+                                                        isLoading = isLoading
                                                     )
                                                 } else {
                                                     val pokemon: Pokemon? by remember {
@@ -308,7 +310,6 @@ class PokemonActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun PokemonList(
     list: List<Pokemon>,
@@ -318,8 +319,15 @@ fun PokemonList(
     searchQuery: String,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    state: LazyListState) {
+    state: LazyListState,
+    isLoading: Boolean) {
     with(sharedTransitionScope) {
+        val t by remember {
+            derivedStateOf {
+                println("rtygb")
+                isLoading
+            }
+        }
         Column(modifier = modifier.fillMaxSize()) {
             TextField(
                 value = searchQuery,
@@ -337,6 +345,7 @@ fun PokemonList(
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(horizontal = 8.dp),
                 state = state
             ) {
@@ -351,6 +360,7 @@ fun PokemonList(
                                 }
                                 selecting = false
                                 timedout = false
+
                                 onSelectPokemon(pokemonName.name)
                             }
                         }
@@ -377,6 +387,13 @@ fun PokemonList(
                         sharedTransitionScope = sharedTransitionScope
                     )
                 }
+                if (isLoading) {
+                    item {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            CircularProgressIndicator(color = Color.White, strokeCap = StrokeCap.Round, strokeWidth = 3.dp)
+                        }
+                    }
+                }
             }
         }
     }
@@ -390,8 +407,9 @@ fun DetailsScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope) {
     with(sharedTransitionScope) {
-        Column (modifier = modifier
-        ){
+        Column(
+            modifier = modifier
+        ) {
             TextField(
                 value = searchQuery,
                 onValueChange = { },
@@ -465,11 +483,13 @@ fun DetailsScreen(
                         )
 
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = Modifier.sharedElement(
                             rememberSharedContentState(key = "${pokemon.name}-type"),
                             animatedVisibilityScope
-                        )) {
+                        )
+                    ) {
                         pokemon.types.forEach { type ->
                             Box(
                                 modifier = Modifier
