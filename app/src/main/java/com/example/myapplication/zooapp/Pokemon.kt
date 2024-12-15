@@ -73,6 +73,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -474,6 +475,7 @@ fun DetailsScreen(
                     }
                     AsyncImage(
                         pokemon.sprites.front_default,
+                        filterQuality = FilterQuality.None,
                         contentDescription = "${pokemon.name} Image",
                         modifier = Modifier
                             .sharedElement(
@@ -566,6 +568,7 @@ fun ListItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         AsyncImage(
                             pokemon.sprites.front_default,
+                            filterQuality = FilterQuality.None,
                             contentDescription = "${pokemon.name} Image",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
