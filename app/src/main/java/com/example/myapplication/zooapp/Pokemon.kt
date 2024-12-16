@@ -2,13 +2,12 @@
 
 package com.example.myapplication.zooapp
 
-import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -58,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -73,6 +73,7 @@ import com.example.myapplication.zooapp.components.SettingsScreen
 import com.example.myapplication.zooapp.components.TopBar
 import com.example.myapplication.zooapp.ui.theme.MyApplicationTheme
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -133,7 +134,8 @@ class Service {
     suspend fun getEncounters(pokemon: String): MutableList<Encounter> {
         try{
             val res = client.get { _url("$api/pokemon/$pokemon/encounters") }
-            val encounters = Gson().fromJson(res.bodyAsText(), mutableListOf<Encounter>()::class.java)
+            val listType = object : TypeToken<List<Encounter>>() {}.type
+            val encounters = Gson().fromJson<List<Encounter>>(res.bodyAsText(), listType)
             return encounters.toMutableStateList()
         } catch (e: Error){
             return emptyList<Encounter>().toMutableStateList()
@@ -148,13 +150,19 @@ class PokemonActivity : ComponentActivity() {
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+        )
 
         setContent {
             val list: MutableList<Pokemon> = remember { emptyList<Pokemon>().toMutableStateList() }
             var isDarkModeEnabled by remember { mutableStateOf(false) }
+            val color = MaterialTheme.colorScheme.background.toArgb()
+
             LaunchedEffect(true) {
                 service.getEncounters("pikachu")
+                enableEdgeToEdge(
+                    statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.light(color, color) else SystemBarStyle.dark(color)
+                )
             }
 
             MyApplicationTheme(
@@ -403,7 +411,7 @@ fun PokemonList(
                                 selecting = false
                                 timedout = false
 
-
+                                onSelectPokemon(pokemonName.name)
                             }
                         }
                     }
@@ -420,7 +428,10 @@ fun PokemonList(
                         pokemonName,
                         index,
                         scrollToItem = {
-                            onSelectPokemon(pokemonName.name)
+                            coroutine.launch {
+                                state.animateScrollToItem(index = index, -500)
+                            }
+                            selecting = true
                         },
                         animatedVisibilityScope = animatedVisibilityScope,
                         sharedTransitionScope = sharedTransitionScope
