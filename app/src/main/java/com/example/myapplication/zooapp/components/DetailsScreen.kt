@@ -6,7 +6,9 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.absoluteOffset
@@ -15,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Favorite
@@ -31,21 +35,25 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
-import com.example.myapplication.zooapp.Encounter
-import com.example.myapplication.zooapp.Pokemon
-import com.example.myapplication.zooapp.Service
+import com.example.myapplication.zooapp.api.Encounter
+import com.example.myapplication.zooapp.api.Pokemon
+import com.example.myapplication.zooapp.api.PokemonService
 import com.example.myapplication.zooapp.favList
+import java.util.Locale
 
 
 @OptIn(UnstableApi::class)
@@ -58,22 +66,24 @@ fun DetailsScreen(
     searchQuery: String,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    service: Service
+    service: PokemonService
 ) {
     with(sharedTransitionScope) {
         val encounters = remember { emptyList<Encounter>().toMutableList() }
         LaunchedEffect(true) {
             encounters.addAll(service.getEncounters(pokemon.name))
-            println(encounters.size)
         }
         Column(
             modifier = modifier
         ) {
             var animate by remember { mutableStateOf(false) }
-            val offset by animateIntAsState(if (animate) (-80) else 0,label = "offset")
-            val height by animateDpAsState(targetValue = if (animate) 0.dp else 30.dp, label = "height")
+            val offset by animateIntAsState(if (animate) (-80) else 0, label = "offset")
+            val height by animateDpAsState(
+                targetValue = if (animate) 0.dp else 30.dp,
+                label = "height"
+            )
             LaunchedEffect(true) {
-                animate=true
+                animate = true
             }
             TextField(
                 value = searchQuery,
@@ -82,7 +92,8 @@ fun DetailsScreen(
                 colors = TextFieldDefaults.colors().copy(
                     disabledIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent),
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
                 trailingIcon = { Icon(Icons.Outlined.Search, contentDescription = "pesquisar") },
                 modifier = Modifier
                     .sharedElement(
@@ -92,7 +103,7 @@ fun DetailsScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(height)
-                    .absoluteOffset { IntOffset(0,offset) }
+                    .absoluteOffset { IntOffset(0, offset) }
             )
             Card(
                 modifier = Modifier
@@ -103,10 +114,13 @@ fun DetailsScreen(
                     .padding(16.dp)
                     .fillMaxSize(),
             ) {
+                val state = rememberScrollState()
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .verticalScroll(state),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -164,26 +178,86 @@ fun DetailsScreen(
                     ) {
                         TypesLabel(pokemon)
                     }
-//                    MusicPlayer(pokemon.cries.latest)
-//                    pokemon.abilities.forEach{
-//                        slot->
-//                        Text(
-//                            slot.ability.name
-//                        )
-//                    }
+                    MusicPlayer(pokemon.cries.latest)
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Text(
+                            "Habilidades:",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
 
-                    encounters.forEach {encounter ->
-//                        encounter.version_details.forEach{version->
-//                            Row {
-//                                Text(
-//                                    version.version.name
-//                                )
-//                                Text(
-//                                    encounter.location_area.name
-//                                )
-//                            }
-//                        }
-                        Text(encounter.location_area.name)
+                        pokemon.abilities.forEach { slot ->
+                            Box(
+                                modifier = Modifier.clip(RoundedCornerShape(10.dp))
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            ) {
+                                Text(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    text = slot.ability.name.replace("-", " ")
+                                        .replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(
+                                                Locale.getDefault()
+                                            ) else it.toString()
+                                        }
+                                )
+                            }
+                        }
+                    }
+                    val list = remember { mutableMapOf<String, MutableList<String>>() }
+                    LaunchedEffect(encounters.size) {
+                        encounters.forEach { encounter ->
+                            encounter.version_details.forEach { version ->
+                                if (list[version.version.name] == null)
+                                    list[version.version.name] = mutableStateListOf()
+                                val loc = service.getLocation(encounter.location_area.url)
+                                if (loc.names.isEmpty()) {
+                                    list[version.version.name]?.add(encounter.location_area.name.replace(
+                                        "-",
+                                        " "
+                                    )
+                                        .replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                                        })
+                                } else {
+                                    list[version.version.name]?.add(loc.names[0].name)
+                                }
+                            }
+                        }
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Text(
+                            "Localizações:",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                        list.forEach { x ->
+                            ExpandableCard(x.key.replaceFirstChar {
+                                if (it.isLowerCase()) it.titlecase(
+                                    Locale.getDefault()
+                                ) else it.toString()
+                            }, containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+                                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    x.value.forEach { value ->
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .fillMaxWidth()
+                                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                        ) {
+                                            Text(
+                                                value, Modifier
+                                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

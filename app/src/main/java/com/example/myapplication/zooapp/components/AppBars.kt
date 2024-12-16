@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.BottomNavigationDefaults.windowInsets
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DropdownMenu
@@ -106,7 +108,7 @@ fun TopBar(route: String, navController: NavHostController, scope: CoroutineScop
                 }
             }) {
                 Icon(
-                    painterResource(R.drawable.menu), "menu",
+                    Icons.Rounded.Menu, "menu",
                     Modifier.size(24.dp))
             }
             DropdownMenu(

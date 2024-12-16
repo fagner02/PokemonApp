@@ -36,7 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.myapplication.R
-import com.example.myapplication.zooapp.Pokemon
+import com.example.myapplication.zooapp.api.Pokemon
 import com.example.myapplication.zooapp.favList
 import com.example.myapplication.zooapp.ui.theme.typeColors
 

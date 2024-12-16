@@ -65,6 +65,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication.zooapp.api.Pokemon
+import com.example.myapplication.zooapp.api.PokemonService
 import com.example.myapplication.zooapp.components.BottomBar
 import com.example.myapplication.zooapp.components.DetailsScreen
 import com.example.myapplication.zooapp.components.HelpAndSupportScreen
@@ -72,80 +74,14 @@ import com.example.myapplication.zooapp.components.PokemonCard
 import com.example.myapplication.zooapp.components.SettingsScreen
 import com.example.myapplication.zooapp.components.TopBar
 import com.example.myapplication.zooapp.ui.theme.MyApplicationTheme
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.milliseconds
-import io.ktor.client.request.url as _url
 
-@Serializable
-data class ApiResource(val url: String, val name:String)
-@Serializable
-data class ApiResourceList(val next: String?, val previous: String?, val results: List<ApiResource>)
-@Suppress("PropertyName")
-@Serializable
-data class Sprites(val front_default: String?)
-@Serializable
-data class TypeSlot(val slot: Int, val type: Name)
-@Serializable
-data class Cries(val latest: String, val latency: String)
-@Serializable
-data class Name(val name: String)
-@Serializable
-data class AbilitySlot(val is_hidden: Boolean, val slot: Int, val ability: Name)
-@Serializable
-data class EncounterDetails(val chance: Int, val max_level: Int, val min_level: Int, val method: Name)
-@Serializable
-data class EncounterVersion(val encounter_details: List<EncounterDetails>, val max_chance: Int, val version: Name)
-@Serializable
-data class Encounter(val location_area: Name, val version_details:  List<EncounterVersion>)
-@Serializable
-data class Pokemon(val name: String, val types: List<TypeSlot>, val sprites: Sprites, val cries: Cries, val abilities: List<AbilitySlot>)
-
-class Service {
-    private val client=HttpClient()
-    private val api = "https://pokeapi.co/api/v2"
-    private var next: String? = "${api}/pokemon?offset=0&limit=10"
-    suspend fun getList(): MutableList<Pokemon> {
-        try {
-            val res = client.get { _url("$next") }
-            val resourceList = Gson().fromJson(res.bodyAsText(), ApiResourceList::class.java)
-            val pokemons:MutableList<Pokemon> = emptyList<Pokemon>().toMutableList()
-            for (resource in resourceList.results){
-                val pokeRes =
-                    HttpClient().get { _url("https://pokeapi.co/api/v2/pokemon/${resource.name}") }
-                val pokemon =
-                    Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
-                pokemons.add(pokemon)
-            }
-            next = resourceList.next
-            return pokemons
-        }
-            catch (e:Error) {
-                return  mutableStateListOf()
-            }
-    }
-
-    suspend fun getEncounters(pokemon: String): MutableList<Encounter> {
-        try{
-            val res = client.get { _url("$api/pokemon/$pokemon/encounters") }
-            val listType = object : TypeToken<List<Encounter>>() {}.type
-            val encounters = Gson().fromJson<List<Encounter>>(res.bodyAsText(), listType)
-            return encounters.toMutableStateList()
-        } catch (e: Error){
-            return emptyList<Encounter>().toMutableStateList()
-        }
-    }
-}
 val favList: MutableList<String> = mutableStateListOf()
 
 class PokemonActivity : ComponentActivity() {
-    private val service = Service()
+    private val service = PokemonService()
 
     @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -161,7 +97,7 @@ class PokemonActivity : ComponentActivity() {
             LaunchedEffect(true) {
                 service.getEncounters("pikachu")
                 enableEdgeToEdge(
-                    statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.light(color, color) else SystemBarStyle.dark(color)
+                    statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.dark(color) else SystemBarStyle.light(color,color)
                 )
             }
 
@@ -280,7 +216,8 @@ class PokemonActivity : ComponentActivity() {
                                                     val favourites =
                                                         list.filter { favList.contains(it.name) }
                                                     if (favourites.isEmpty()) {
-                                                        Box(modifier = Modifier.padding(innerPadding)
+                                                        Box(modifier = Modifier
+                                                            .padding(innerPadding)
                                                             .fillMaxSize()
                                                             , contentAlignment = Alignment.Center) {
                                                             Text("Você ainda não tem favoritos")
@@ -396,7 +333,9 @@ fun PokemonList(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.clipToBounds().padding(horizontal = 8.dp),
+                modifier = Modifier
+                    .clipToBounds()
+                    .padding(horizontal = 8.dp),
                 state = state
             ) {
                 itemsIndexed(list.filter { it.name.contains(searchQuery) }) { index, pokemonName ->
