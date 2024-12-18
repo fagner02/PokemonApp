@@ -94,8 +94,7 @@ class PokemonActivity : ComponentActivity() {
             var isDarkModeEnabled by remember { mutableStateOf(false) }
             val color = MaterialTheme.colorScheme.background.toArgb()
 
-            LaunchedEffect(true) {
-                service.getEncounters("pikachu")
+            LaunchedEffect(isDarkModeEnabled) {
                 enableEdgeToEdge(
                     statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.dark(color) else SystemBarStyle.light(color,color)
                 )
