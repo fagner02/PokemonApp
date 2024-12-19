@@ -11,6 +11,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.BottomNavigationDefaults.windowInsets
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerState
@@ -51,14 +57,22 @@ fun BottomBar(route: String, navController: NavHostController) {
             verticalAlignment = Alignment.CenterVertically,
         )
         {
+            val bottomBarButtonColors=  ButtonDefaults.textButtonColors().copy(
+                disabledContentColor = ButtonDefaults.textButtonColors().contentColor,
+                disabledContainerColor = ButtonDefaults.textButtonColors().containerColor,
+                containerColor = ButtonDefaults.textButtonColors().disabledContainerColor,
+                contentColor = ButtonDefaults.textButtonColors().disabledContentColor
+            )
+
+
             TextButton(
                 enabled = route != "list",
-                colors = ButtonDefaults.textButtonColors(),
+                colors = bottomBarButtonColors,
                 onClick = { navController.navigate("list") },
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        painterResource(R.drawable.home),
+                        if (route != "list") Icons.Outlined.Home else Icons.Filled.Home,
                         contentDescription = "início"
                     )
                     Text("início")
@@ -66,10 +80,11 @@ fun BottomBar(route: String, navController: NavHostController) {
             }
 
             TextButton(enabled = route != "fav",
+                colors = bottomBarButtonColors,
                 onClick = { navController.navigate("fav") }) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        painterResource(R.drawable.favout),
+                        if (route != "fav") Icons.Outlined.FavoriteBorder else Icons.Filled.Favorite,
                         contentDescription = "favoritos"
                     )
                     Text("favoritos")
@@ -95,7 +110,9 @@ fun TopBar(route: String, navController: NavHostController, scope: CoroutineScop
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painterResource(R.drawable.poke),
-                contentDescription = "icone"
+                contentDescription = "icone",
+                modifier = Modifier
+                    .size(42.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(title)

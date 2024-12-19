@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.androidx.material.icons.extended)
     implementation (libs.accompanist.systemuicontroller)
+    implementation(libs.translate)
 
     implementation (libs.androidx.core.core.ktx.v1120)
     implementation (libs.androidx.compose.ui.ui.v153)

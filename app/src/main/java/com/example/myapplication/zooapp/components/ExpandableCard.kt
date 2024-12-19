@@ -34,12 +34,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ExpandableCard(title: String, modifier: Modifier=Modifier, containerColor: androidx.compose.ui.graphics.Color= MaterialTheme.colorScheme.surfaceContainer, content: @Composable ()->Unit) {
+fun ExpandableCard(title: String, modifier: Modifier=Modifier, containerColor: androidx.compose.ui.graphics.Color= MaterialTheme.colorScheme.surfaceContainer,
+                   trailingContent: @Composable ()->Unit={}, content: @Composable ()->Unit) {
     var expandedState by remember { mutableStateOf(false) }
     val angle: Float by animateFloatAsState(
         targetValue = if (expandedState) 180f else 0f, label = "angle"
     )
-    Card (
+    Card(
         modifier = modifier
             .clip(RoundedCornerShape(15.dp))
             .fillMaxWidth()
@@ -49,31 +50,42 @@ fun ExpandableCard(title: String, modifier: Modifier=Modifier, containerColor: a
                     easing = LinearOutSlowInEasing
                 )
             )
-            .clickable (
+            .clickable(
                 onClick = {
                     expandedState = !expandedState
                 }
             ),
         colors = CardDefaults.cardColors().copy(containerColor = containerColor)
     ) {
-        Column (
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
 
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.weight(1f))
-                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "expandir", modifier = Modifier
-                    .weight(0.1f).size(24.dp).rotate(angle))
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    trailingContent()
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+
+                        )
+
+                }
+                Icon(
+                    Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = "expandir",
+                    modifier = Modifier
+                        .weight(0.1f).size(24.dp).rotate(angle)
+                )
             }
-            if(expandedState){
+            if (expandedState) {
                 Spacer(Modifier.height(5.dp))
                 content()
             }

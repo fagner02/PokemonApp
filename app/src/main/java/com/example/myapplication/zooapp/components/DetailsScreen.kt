@@ -1,5 +1,6 @@
 package com.example.myapplication.zooapp.components
 
+import android.graphics.Color.parseColor
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -50,12 +51,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
+import com.example.myapplication.zooapp.api.AbilityDetails
+import com.example.myapplication.zooapp.api.AbilityEffect
 import com.example.myapplication.zooapp.api.Encounter
 import com.example.myapplication.zooapp.api.Pokemon
 import com.example.myapplication.zooapp.api.PokemonService
 import com.example.myapplication.zooapp.favList
+import com.example.myapplication.zooapp.ui.theme.pokemonVersionColors
+import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.TranslatorOptions
 import java.util.Locale
-
 
 @OptIn(UnstableApi::class)
 @kotlin.OptIn(ExperimentalSharedTransitionApi::class)
@@ -162,7 +168,7 @@ fun DetailsScreen(
                     )
 
                     Text(
-                        text = pokemon.name,
+                        text = pokemon.name.replaceFirstChar { it.titlecase() },
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.sharedElement(
                             rememberSharedContentState(key = "${pokemon.name}-name"),
@@ -188,32 +194,50 @@ fun DetailsScreen(
                             "Habilidades:",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
+                        val listAbility = remember { mutableStateMapOf<String, AbilityDetails>() }
+                        LaunchedEffect(pokemon.abilities) {
+                            pokemon.abilities.forEach { slot ->
+                                val details = service.getAbility(slot.ability.url)
+                                listAbility[slot.ability.name] = details
 
-                        pokemon.abilities.forEach { slot ->
-                            Box(
-                                modifier = Modifier.clip(RoundedCornerShape(10.dp))
-                                    .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                            ) {
-                                Text(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    text = slot.ability.name.replace("-", " ")
-                                        .replaceFirstChar {
-                                            if (it.isLowerCase()) it.titlecase(
-                                                Locale.getDefault()
-                                            ) else it.toString()
-                                        }
-                                )
+                                val options = TranslatorOptions.Builder()
+                                    .setSourceLanguage(TranslateLanguage.ENGLISH)
+                                    .setTargetLanguage(TranslateLanguage.PORTUGUESE)
+                                    .build()
+                                val effect =
+                                    details.effect_entries.find { it: AbilityEffect -> it.language.name == "en" }
+                                val translator =
+                                    Translation.getClient(options)
+                                translator
+                                    .downloadModelIfNeeded()
+                                    .addOnSuccessListener {
+                                        translator.translate(effect?.effect ?: "")
+                                            .addOnSuccessListener { res ->
+                                                details.effect_entries[0].effect = res
+                                            }
+                                    }
                             }
                         }
+                        listAbility.forEach { x ->
+                            val name = x.key.replace("-", " ").replaceFirstChar { it.titlecase() }
+
+                            ExpandableCard(
+                                name,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ) {
+                                Text(x.value.effect_entries[0].effect)
+                            }
+                        }
+
                     }
                     val list = remember { mutableStateMapOf<String, MutableList<String>>() }
                     LaunchedEffect(encounters.size) {
                         encounters.forEach { encounter ->
+                            val loc = service.getLocation(encounter.location_area.url)
                             encounter.version_details.forEach { version ->
                                 if (list[version.version.name] == null)
                                     list[version.version.name] = mutableStateListOf()
-                                val loc = service.getLocation(encounter.location_area.url)
+
                                 if (loc.names.isEmpty()) {
                                     list[version.version.name]?.add(encounter.location_area.name.replace(
                                         "-",
@@ -233,15 +257,29 @@ fun DetailsScreen(
                         verticalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         Text(
-                            "Localizações:",
+                            "Onde encontrar ${pokemon.name.replaceFirstChar { it.titlecase() }}:",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         list.forEach { x ->
-                            ExpandableCard(x.key.replaceFirstChar {
-                                if (it.isLowerCase()) it.titlecase(
-                                    Locale.getDefault()
-                                ) else it.toString()
-                            }, containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+                            val versionName = x.key.split("-")
+                                .joinToString(" ") { word -> word.replaceFirstChar { c -> c.titlecase() } }
+
+                            ExpandableCard(
+                                versionName,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                trailingContent = {
+                                    Box(modifier= Modifier
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .size(16.dp, 28.dp)
+                                        .background(
+                                            Color(
+                                                parseColor(
+                                                    pokemonVersionColors[versionName] ?: "#FFFFFF"
+                                                )
+                                            )
+                                        ))
+                                }
+                            ) {
                                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                                     x.value.forEach { value ->
                                         Box(

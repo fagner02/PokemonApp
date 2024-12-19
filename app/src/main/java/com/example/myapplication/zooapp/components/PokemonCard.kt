@@ -90,7 +90,7 @@ fun PokemonCard(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
-                                text = pokemon.name,
+                                text = pokemon.name.replaceFirstChar { it.titlecase() },
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.sharedElement(
                                     rememberSharedContentState(key = "${pokemon.name}-name"),

@@ -30,6 +30,7 @@ mePokekotlin = "<VERSION>"
 pokekotlin = "2.3.1"
 runtimeLivedata = "1.7.5"
 runtimeLivedataVersion = "1.5.3"
+translate = "17.0.3"
 ui = "1.7.5"
 composeBom = "2024.11.00"
 navigationCompose = "2.8.4"
@@ -90,6 +91,7 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "ma
 me-pokekotlin = { module = "me.sargunvohra.lib:pokekotlin", version.ref = "mePokekotlin" }
 pokeapi-pokekotlin = { module = "com.github.PokeAPI:pokekotlin", version.ref = "pokekotlin" }
 pokekotlin = { module = "me.sargunvohra.lib:pokekotlin", version = "2.0.0" }
+translate = { module = "com.google.mlkit:translate", version.ref = "translate" }
 transport-api = { group = "com.google.android.datatransport", name = "transport-api", version.ref = "transportApi" }
 
 [plugins]

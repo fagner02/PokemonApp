@@ -71,6 +71,7 @@ import com.example.myapplication.zooapp.components.BottomBar
 import com.example.myapplication.zooapp.components.DetailsScreen
 import com.example.myapplication.zooapp.components.HelpAndSupportScreen
 import com.example.myapplication.zooapp.components.PokemonCard
+import com.example.myapplication.zooapp.components.PokemonList
 import com.example.myapplication.zooapp.components.SettingsScreen
 import com.example.myapplication.zooapp.components.TopBar
 import com.example.myapplication.zooapp.ui.theme.MyApplicationTheme
@@ -93,11 +94,22 @@ class PokemonActivity : ComponentActivity() {
             val list: MutableList<Pokemon> = remember { emptyList<Pokemon>().toMutableStateList() }
             var isDarkModeEnabled by remember { mutableStateOf(false) }
             val color = MaterialTheme.colorScheme.background.toArgb()
+            var isLoading by remember{ mutableStateOf( false)}
 
             LaunchedEffect(isDarkModeEnabled) {
                 enableEdgeToEdge(
-                    statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.dark(color) else SystemBarStyle.light(color,color)
+                    statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.dark(Color.Black.toArgb()) else SystemBarStyle.light(color,color)
                 )
+            }
+            LaunchedEffect(true) {
+                isLoading=true
+                var res = service.getList()
+                while (res.isNotEmpty()) {
+                    list.addAll(res)
+                    delay(100)
+                    res = service.getList()
+                }
+                isLoading=false
             }
 
             MyApplicationTheme(
@@ -149,22 +161,21 @@ class PokemonActivity : ComponentActivity() {
                                 var searchQuery by remember { mutableStateOf("") }
                                 val listState = rememberLazyListState()
                                 val favListState = rememberLazyListState()
-                                var isLoading by remember{ mutableStateOf( false)}
 
-                                val reachedBottom by remember {
-                                    derivedStateOf {
-                                        val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-                                        (last == null || listState.layoutInfo.totalItemsCount <= last.index + 5)
-                                    }
-                                }
+//                                val reachedBottom by remember {
+//                                    derivedStateOf {
+//                                        val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+//                                        (last == null || listState.layoutInfo.totalItemsCount <= last.index + 5)
+//                                    }
+//                                }
 
-                                LaunchedEffect(reachedBottom) {
-                                    if (reachedBottom) {
-                                        isLoading=true
-                                        list.addAll(service.getList())
-                                        isLoading=false
-                                    }
-                                }
+//                                LaunchedEffect(reachedBottom) {
+//                                    if (reachedBottom) {
+//                                        isLoading=true
+//                                        list.addAll(service.getList())
+//                                        isLoading=false
+//                                    }
+//                                }
 
                                 NavHost(navController, startDestination = "list") {
                                     composable("list") {
@@ -211,8 +222,8 @@ class PokemonActivity : ComponentActivity() {
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "fav") { state ->
                                                 if (state == "") {
-                                                    val favourites =
-                                                        list.filter { favList.contains(it.name) }
+                                                    val favourites:MutableList<Pokemon> =
+                                                        list.filter { favList.contains(it.name) }.toMutableStateList()
                                                     if (favourites.isEmpty()) {
                                                         Box(modifier = Modifier
                                                             .padding(innerPadding)
@@ -289,105 +300,3 @@ class PokemonActivity : ComponentActivity() {
         }
     }
 }
-
-@Composable
-fun PokemonList(
-    list: List<Pokemon>,
-    modifier: Modifier,
-    onSelectPokemon: (String)-> Unit,
-    onInputQuery: (String)->Unit,
-    searchQuery: String,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    state: LazyListState,
-    isLoading: Boolean) {
-    with(sharedTransitionScope) {
-        Column(modifier = modifier.fillMaxSize()) {
-            TextField(
-                value = searchQuery,
-                onValueChange = onInputQuery,
-                singleLine = true,
-                shape = RoundedCornerShape(25),
-                colors = TextFieldDefaults.colors().copy(
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                placeholder = { Text("Pesquisar") },
-                trailingIcon = { Icon(Icons.Outlined.Search, contentDescription = "Pesquisar") },
-                enabled = true,
-                modifier = Modifier
-                    .sharedElement(
-                        rememberSharedContentState(key = "text"),
-                        animatedVisibilityScope
-                    )
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .fillMaxWidth(),
-            )
-
-
-            val coroutine = rememberCoroutineScope()
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .clipToBounds()
-                    .padding(horizontal = 8.dp),
-                state = state
-            ) {
-                itemsIndexed(list.filter { it.name.contains(searchQuery) }) { index, pokemonName ->
-                    var selecting by remember { mutableStateOf(false) }
-                    var timedout by remember { mutableStateOf(false) }
-                    if (selecting && (state.isScrollInProgress && !timedout)) {
-                        DisposableEffect(Unit) {
-                            onDispose {
-                                coroutine.launch {
-                                    state.stopScroll()
-                                }
-                                selecting = false
-                                timedout = false
-
-                                onSelectPokemon(pokemonName.name)
-                            }
-                        }
-                    }
-                    if (selecting) {
-                        LaunchedEffect(Unit) {
-                            while (true) {
-                                delay(100.milliseconds)
-                                timedout = true
-                            }
-                        }
-                    }
-
-                    PokemonCard(
-                        pokemonName,
-                        index,
-                        scrollToItem = {
-                            coroutine.launch {
-                                state.animateScrollToItem(index = index, -500)
-                            }
-                            selecting = true
-                        },
-                        animatedVisibilityScope = animatedVisibilityScope,
-                        sharedTransitionScope = sharedTransitionScope
-                    )
-                }
-                if (isLoading) {
-                    item {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary,
-                                strokeCap = StrokeCap.Round,
-                                strokeWidth = 3.dp
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
