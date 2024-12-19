@@ -136,29 +136,42 @@ class PokemonActivity : ComponentActivity() {
                                 var searchQuery by remember { mutableStateOf("") }
                                 val listState = rememberLazyListState()
                                 val favListState = rememberLazyListState()
-
+                                var isAnimating by remember { mutableStateOf(false) }
                                 NavHost(navController, startDestination = "list") {
                                     composable("list") {
                                         var selected by remember { mutableStateOf("") }
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "hero") { state ->
                                                 if (state == "") {
+                                                    LaunchedEffect(true) {
+                                                        println("in")
+                                                        isAnimating = true
+                                                        delay(550)
+                                                        isAnimating = false
+                                                        println("out")
+                                                    }
                                                     PokemonList(
                                                         list,
-                                                        animatedVisibilityScope = this@AnimatedContent,
-                                                        sharedTransitionScope = this@SharedTransitionLayout,
                                                         modifier = Modifier.padding(innerPadding),
-                                                        searchQuery = searchQuery,
                                                         onSelectPokemon = { name ->
                                                             selected = name
                                                         },
                                                         onInputQuery = { input ->
                                                             searchQuery = input
                                                         },
+                                                        searchQuery = searchQuery,
+                                                        sharedTransitionScope = this@SharedTransitionLayout,
+                                                        animatedVisibilityScope = this@AnimatedContent,
                                                         state = listState,
-                                                        isLoading = isLoading
+                                                        isLoading = isLoading,
+                                                        isAnimating = isAnimating
                                                     )
                                                 } else {
+                                                    LaunchedEffect(true) {
+                                                        isAnimating = true
+                                                        delay(450)
+                                                        isAnimating = false
+                                                    }
                                                     val pokemon: Pokemon? by remember {
                                                         mutableStateOf(list.find { it.name == state })
                                                     }
@@ -170,7 +183,8 @@ class PokemonActivity : ComponentActivity() {
                                                             searchQuery,
                                                             this@SharedTransitionLayout,
                                                             this@AnimatedContent,
-                                                            service
+                                                            service,
+                                                            isAnimating
                                                         )
                                                     }
                                                 }
@@ -182,6 +196,11 @@ class PokemonActivity : ComponentActivity() {
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "fav") { state ->
                                                 if (state == "") {
+                                                    LaunchedEffect(true) {
+                                                        isAnimating=true
+                                                        delay(550)
+                                                        isAnimating=false
+                                                    }
                                                     val favourites:MutableList<Pokemon> =
                                                         list.filter { favList.contains(it.name) }.toMutableStateList()
                                                     if (favourites.isEmpty()) {
@@ -195,16 +214,22 @@ class PokemonActivity : ComponentActivity() {
                                                         PokemonList(
                                                             favourites,
                                                             modifier = Modifier.padding(innerPadding),
-                                                            animatedVisibilityScope = this@AnimatedContent,
-                                                            sharedTransitionScope = this@SharedTransitionLayout,
-                                                            onInputQuery = { searchQuery = it },
                                                             onSelectPokemon = { selected = it },
+                                                            onInputQuery = { searchQuery = it },
                                                             searchQuery = searchQuery,
+                                                            sharedTransitionScope = this@SharedTransitionLayout,
+                                                            animatedVisibilityScope = this@AnimatedContent,
                                                             state = favListState,
-                                                            isLoading = false
+                                                            isLoading = false,
+                                                            isAnimating=isAnimating
                                                         )
                                                     }
                                                 } else {
+                                                    LaunchedEffect(true) {
+                                                        isAnimating=true
+                                                        delay(250)
+                                                        isAnimating=false
+                                                    }
                                                     val pokemon: Pokemon? by remember {
                                                         mutableStateOf(list.find { it.name == state })
                                                     }
@@ -216,7 +241,8 @@ class PokemonActivity : ComponentActivity() {
                                                             searchQuery,
                                                             this@SharedTransitionLayout,
                                                             this@AnimatedContent,
-                                                            service
+                                                            service,
+                                                            isAnimating
                                                         )
                                                     }
                                                 }

@@ -72,7 +72,8 @@ fun DetailsScreen(
     searchQuery: String,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    service: PokemonService
+    service: PokemonService,
+    isAnimating: Boolean
 ) {
     with(sharedTransitionScope) {
         val encounters = remember { emptyList<Encounter>().toMutableList() }
@@ -132,9 +133,13 @@ fun DetailsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        IconButton(onClick = {
-                            onBack()
-                        }) {
+                        IconButton(
+                            onClick = {
+                                if (!isAnimating)
+                                    onBack()
+                            },
+                            enabled = !isAnimating
+                        ) {
                             Icon(Icons.AutoMirrored.Outlined.ArrowBack, "voltar")
                         }
                         IconButton(onClick = {
@@ -234,9 +239,9 @@ fun DetailsScreen(
                                 name,
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer
                             ) {
-                                if(x.value.flavor_text_entries.isNotEmpty())
+                                if (x.value.flavor_text_entries.isNotEmpty())
                                     Text(x.value.flavor_text_entries[0].flavor_text)
-                                if(x.value.effect_entries.isNotEmpty())
+                                if (x.value.effect_entries.isNotEmpty())
                                     Text(x.value.effect_entries[0].effect)
                             }
                         }
@@ -259,7 +264,8 @@ fun DetailsScreen(
                                             if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
                                         })
                                 } else {
-                                    list[version.version.name]?.add(loc.names[0].name)
+                                    if (loc.names.isNotEmpty())
+                                        list[version.version.name]?.add(loc.names[0].name)
                                 }
                             }
                         }
@@ -273,7 +279,7 @@ fun DetailsScreen(
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.fillMaxWidth()
                         )
-                        if(list.isEmpty()){
+                        if (list.isEmpty()) {
                             Text("Sem informações sobre onde encontrar esse pokemon")
                         }
                         list.forEach { x ->
@@ -284,16 +290,19 @@ fun DetailsScreen(
                                 versionName,
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
                                 trailingContent = {
-                                    Box(modifier= Modifier
-                                        .clip(RoundedCornerShape(5.dp))
-                                        .size(16.dp, 28.dp)
-                                        .background(
-                                            Color(
-                                                parseColor(
-                                                    pokemonVersionColors[versionName] ?: "#FFFFFF"
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(5.dp))
+                                            .size(16.dp, 28.dp)
+                                            .background(
+                                                Color(
+                                                    parseColor(
+                                                        pokemonVersionColors[versionName]
+                                                            ?: "#FFFFFF"
+                                                    )
                                                 )
                                             )
-                                        ))
+                                    )
                                 }
                             ) {
                                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {

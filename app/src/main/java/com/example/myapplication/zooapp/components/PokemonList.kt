@@ -33,12 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.zooapp.api.Pokemon
-import com.example.myapplication.zooapp.api.PokemonService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -49,13 +47,15 @@ import kotlin.time.Duration.Companion.milliseconds
 fun PokemonList(
     list: MutableList<Pokemon>,
     modifier: Modifier,
-    onSelectPokemon: (String)-> Unit,
-    onInputQuery: (String)->Unit,
+    onSelectPokemon: (String) -> Unit,
+    onInputQuery: (String) -> Unit,
     searchQuery: String,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
     state: LazyListState,
-    isLoading: Boolean) {
+    isLoading: Boolean,
+    isAnimating: Boolean
+) {
     with(sharedTransitionScope) {
         Column(modifier = modifier.fillMaxSize()) {
             TextField(
@@ -92,7 +92,8 @@ fun PokemonList(
                 modifier = Modifier
                     .clipToBounds()
                     .padding(horizontal = 8.dp),
-                state = state
+                state = state,
+                userScrollEnabled = !isAnimating
             ) {
                 itemsIndexed(list.filter { it.name.contains(searchQuery) }) { index, pokemonName ->
                     var selecting by remember { mutableStateOf(false) }
@@ -123,13 +124,15 @@ fun PokemonList(
                         pokemonName,
                         index,
                         scrollToItem = {
-                            coroutine.launch {
-                                state.animateScrollToItem(index = index, -500)
+                            if(!isAnimating) {
+                                coroutine.launch {
+                                    state.animateScrollToItem(index = index, -500)
+                                }
+                                selecting = true
                             }
-                            selecting = true
                         },
                         animatedVisibilityScope = animatedVisibilityScope,
-                        sharedTransitionScope = sharedTransitionScope
+                        sharedTransitionScope = sharedTransitionScope,
                     )
                 }
                 if (isLoading) {
