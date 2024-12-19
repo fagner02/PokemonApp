@@ -141,7 +141,6 @@ class PokemonActivity : ComponentActivity() {
                             }
                         }
                     ) {
-
                         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                             Scaffold(modifier = Modifier.fillMaxSize(),
                                 bottomBar = { BottomBar(route, navController) },

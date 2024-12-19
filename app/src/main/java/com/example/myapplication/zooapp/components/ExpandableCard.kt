@@ -65,11 +65,13 @@ fun ExpandableCard(title: String, modifier: Modifier=Modifier, containerColor: a
                 modifier = Modifier
                     .fillMaxWidth(),
 
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "expandir", modifier = Modifier.size(24.dp).rotate(angle))
+                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.weight(1f))
+                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = "expandir", modifier = Modifier
+                    .weight(0.1f).size(24.dp).rotate(angle))
             }
             if(expandedState){
                 Spacer(Modifier.height(5.dp))
