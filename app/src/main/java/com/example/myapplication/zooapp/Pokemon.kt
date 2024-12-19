@@ -9,42 +9,24 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.gestures.stopScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,14 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -70,14 +49,11 @@ import com.example.myapplication.zooapp.api.PokemonService
 import com.example.myapplication.zooapp.components.BottomBar
 import com.example.myapplication.zooapp.components.DetailsScreen
 import com.example.myapplication.zooapp.components.HelpAndSupportScreen
-import com.example.myapplication.zooapp.components.PokemonCard
 import com.example.myapplication.zooapp.components.PokemonList
 import com.example.myapplication.zooapp.components.SettingsScreen
 import com.example.myapplication.zooapp.components.TopBar
 import com.example.myapplication.zooapp.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 val favList: MutableList<String> = mutableStateListOf()
 
@@ -103,11 +79,11 @@ class PokemonActivity : ComponentActivity() {
             }
             LaunchedEffect(true) {
                 isLoading=true
-                var res = service.getList()
-                while (res.isNotEmpty()) {
-                    list.addAll(res)
-                    delay(100)
-                    res = service.getList()
+                var res = service.getPokemon()
+                while (res != null) {
+                    list.add(res)
+                    delay(0)
+                    res = service.getPokemon()
                 }
                 isLoading=false
             }
@@ -127,7 +103,6 @@ class PokemonActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
@@ -161,21 +136,6 @@ class PokemonActivity : ComponentActivity() {
                                 var searchQuery by remember { mutableStateOf("") }
                                 val listState = rememberLazyListState()
                                 val favListState = rememberLazyListState()
-
-//                                val reachedBottom by remember {
-//                                    derivedStateOf {
-//                                        val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-//                                        (last == null || listState.layoutInfo.totalItemsCount <= last.index + 5)
-//                                    }
-//                                }
-
-//                                LaunchedEffect(reachedBottom) {
-//                                    if (reachedBottom) {
-//                                        isLoading=true
-//                                        list.addAll(service.getList())
-//                                        isLoading=false
-//                                    }
-//                                }
 
                                 NavHost(navController, startDestination = "list") {
                                     composable("list") {
@@ -241,7 +201,7 @@ class PokemonActivity : ComponentActivity() {
                                                             onSelectPokemon = { selected = it },
                                                             searchQuery = searchQuery,
                                                             state = favListState,
-                                                            isLoading = isLoading
+                                                            isLoading = false
                                                         )
                                                     }
                                                 } else {

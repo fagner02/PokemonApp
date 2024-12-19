@@ -52,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
 import com.example.myapplication.zooapp.api.AbilityDetails
-import com.example.myapplication.zooapp.api.AbilityEffect
 import com.example.myapplication.zooapp.api.Encounter
 import com.example.myapplication.zooapp.api.Pokemon
 import com.example.myapplication.zooapp.api.PokemonService
@@ -205,7 +204,9 @@ fun DetailsScreen(
                                     .setTargetLanguage(TranslateLanguage.PORTUGUESE)
                                     .build()
                                 val effect =
-                                    details.effect_entries.find { it: AbilityEffect -> it.language.name == "en" }
+                                    details.effect_entries.find { it.language.name == "en" }
+                                val flavor =
+                                    details.flavor_text_entries.find { it.language.name == "en" }
                                 val translator =
                                     Translation.getClient(options)
                                 translator
@@ -213,7 +214,15 @@ fun DetailsScreen(
                                     .addOnSuccessListener {
                                         translator.translate(effect?.effect ?: "")
                                             .addOnSuccessListener { res ->
-                                                details.effect_entries[0].effect = res
+                                                if (details.effect_entries.isNotEmpty()) {
+                                                    details.effect_entries[0].effect = res
+                                                }
+                                            }
+                                        translator.translate(flavor?.flavor_text ?: "")
+                                            .addOnSuccessListener { res ->
+                                                if (details.flavor_text_entries.isNotEmpty()) {
+                                                    details.flavor_text_entries[0].flavor_text = res
+                                                }
                                             }
                                     }
                             }
@@ -225,7 +234,10 @@ fun DetailsScreen(
                                 name,
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer
                             ) {
-                                Text(x.value.effect_entries[0].effect)
+                                if(x.value.flavor_text_entries.isNotEmpty())
+                                    Text(x.value.flavor_text_entries[0].flavor_text)
+                                if(x.value.effect_entries.isNotEmpty())
+                                    Text(x.value.effect_entries[0].effect)
                             }
                         }
 
@@ -258,8 +270,12 @@ fun DetailsScreen(
                     ) {
                         Text(
                             "Onde encontrar ${pokemon.name.replaceFirstChar { it.titlecase() }}:",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.fillMaxWidth()
                         )
+                        if(list.isEmpty()){
+                            Text("Sem informações sobre onde encontrar esse pokemon")
+                        }
                         list.forEach { x ->
                             val versionName = x.key.split("-")
                                 .joinToString(" ") { word -> word.replaceFirstChar { c -> c.titlecase() } }

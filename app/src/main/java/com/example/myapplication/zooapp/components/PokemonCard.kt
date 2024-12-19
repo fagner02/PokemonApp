@@ -4,6 +4,7 @@ import android.graphics.Color.parseColor
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,7 +21,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,6 +52,7 @@ fun PokemonCard(
     with(sharedTransitionScope) {
         Card(
             modifier = Modifier
+                .animateContentSize()
                 .sharedElement(
                     rememberSharedContentState(key = pokemon.name),
                     animatedVisibilityScope
@@ -60,8 +61,8 @@ fun PokemonCard(
                 .padding(8.dp)
                 .clickable {
                     scrollToItem(index)
-                },
-            elevation = CardDefaults.cardElevation(4.dp)
+                }
+
         ) {
             Column(
                 modifier = Modifier

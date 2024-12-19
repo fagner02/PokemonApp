@@ -1,7 +1,5 @@
 package com.example.myapplication.zooapp.api
 
-import androidx.compose.animation.core.rememberTransition
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -10,7 +8,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.Serializable
-import kotlin.contracts.Effect
 
 @Suppress("PropertyName")
 @Serializable
@@ -34,39 +31,38 @@ data class EncounterVersion(val encounter_details: List<EncounterDetails>, val m
 @Serializable
 data class Encounter(val location_area: ApiResource, val version_details:  List<EncounterVersion>)
 @Serializable
-data class Pokemon(var name: String, val types: List<TypeSlot>, val sprites: Sprites, val cries: Cries, val abilities: List<AbilitySlot>)
+data class Pokemon(var name: String, var loaded: Boolean= true, val types: List<TypeSlot>, val sprites: Sprites, val cries: Cries, val abilities: List<AbilitySlot>)
 @Serializable
 data class Location(val names: List<Name>)
 @Serializable
 data class AbilityEffect(var effect: String, val language: Name)
 @Serializable
-data class AbilityDetails(val effect_entries: List<AbilityEffect>)
+data class FlavorText(var flavor_text: String, val language: Name)
+@Serializable
+data class AbilityDetails(val effect_entries: List<AbilityEffect>, val flavor_text_entries: List<FlavorText>)
 
 class PokemonService {
     private val client= HttpClient()
     private val api = "https://pokeapi.co/api/v2"
-    private var next: String? = "${api}/pokemon?offset=0&limit=10"
+    private var next: String? = "${api}/pokemon?offset=0&limit=1"
 
-    suspend fun getList(): MutableList<Pokemon> {
+    suspend fun getPokemon(): Pokemon? {
         try {
             if(next == null){
-                return emptyList<Pokemon>().toMutableStateList()
+                return null
             }
             val res = client.get { url("$next") }
             val resourceList = Gson().fromJson(res.bodyAsText(), ApiResourceList::class.java)
-            val pokemons:MutableList<Pokemon> = emptyList<Pokemon>().toMutableList()
-            for (resource in resourceList.results){
                 val pokeRes =
-                    HttpClient().get { url("https://pokeapi.co/api/v2/pokemon/${resource.name}") }
+                    HttpClient().get { url("https://pokeapi.co/api/v2/pokemon/${resourceList.results[0].name}") }
                 val pokemon =
                     Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
-                pokemons.add(pokemon)
-            }
+
             next = resourceList.next
-            return pokemons
+            return pokemon
         }
         catch (e:Error) {
-            return  mutableStateListOf()
+            return  null
         }
     }
 
@@ -87,7 +83,7 @@ class PokemonService {
             val ability = Gson().fromJson(res.bodyAsText(), AbilityDetails::class.java)
             return ability
         } catch (e: Error) {
-            return AbilityDetails(emptyList())
+            return AbilityDetails(emptyList(), emptyList())
         }
     }
 
