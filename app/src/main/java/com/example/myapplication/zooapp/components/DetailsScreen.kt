@@ -73,7 +73,8 @@ fun DetailsScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
     service: PokemonService,
-    isAnimating: Boolean
+    isAnimating: Boolean,
+    setIsAnimating: ()->Unit
 ) {
     with(sharedTransitionScope) {
         val encounters = remember { emptyList<Encounter>().toMutableList() }
@@ -135,8 +136,10 @@ fun DetailsScreen(
                     ) {
                         IconButton(
                             onClick = {
-                                if (!isAnimating)
+                                if (!isAnimating) {
+                                    setIsAnimating()
                                     onBack()
+                                }
                             },
                             enabled = !isAnimating
                         ) {

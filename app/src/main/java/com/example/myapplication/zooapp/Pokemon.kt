@@ -137,19 +137,21 @@ class PokemonActivity : ComponentActivity() {
                                 val listState = rememberLazyListState()
                                 val favListState = rememberLazyListState()
                                 var isAnimating by remember { mutableStateOf(false) }
+
+                                LaunchedEffect(isAnimating) {
+                                    if(isAnimating) {
+                                        println("anim in")
+                                        delay(450)
+                                        isAnimating = false
+                                        println("anim out")
+                                    }
+                                }
                                 NavHost(navController, startDestination = "list") {
                                     composable("list") {
                                         var selected by remember { mutableStateOf("") }
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "hero") { state ->
                                                 if (state == "") {
-                                                    LaunchedEffect(true) {
-                                                        println("in")
-                                                        isAnimating = true
-                                                        delay(550)
-                                                        isAnimating = false
-                                                        println("out")
-                                                    }
                                                     PokemonList(
                                                         list,
                                                         modifier = Modifier.padding(innerPadding),
@@ -164,14 +166,10 @@ class PokemonActivity : ComponentActivity() {
                                                         animatedVisibilityScope = this@AnimatedContent,
                                                         state = listState,
                                                         isLoading = isLoading,
-                                                        isAnimating = isAnimating
+                                                        isAnimating = isAnimating,
+                                                        setIsAnimating={isAnimating=true}
                                                     )
                                                 } else {
-                                                    LaunchedEffect(true) {
-                                                        isAnimating = true
-                                                        delay(450)
-                                                        isAnimating = false
-                                                    }
                                                     val pokemon: Pokemon? by remember {
                                                         mutableStateOf(list.find { it.name == state })
                                                     }
@@ -184,7 +182,8 @@ class PokemonActivity : ComponentActivity() {
                                                             this@SharedTransitionLayout,
                                                             this@AnimatedContent,
                                                             service,
-                                                            isAnimating
+                                                            isAnimating,
+                                                            setIsAnimating={isAnimating=true}
                                                         )
                                                     }
                                                 }
@@ -196,11 +195,6 @@ class PokemonActivity : ComponentActivity() {
                                         SharedTransitionLayout {
                                             AnimatedContent(selected, label = "fav") { state ->
                                                 if (state == "") {
-                                                    LaunchedEffect(true) {
-                                                        isAnimating=true
-                                                        delay(550)
-                                                        isAnimating=false
-                                                    }
                                                     val favourites:MutableList<Pokemon> =
                                                         list.filter { favList.contains(it.name) }.toMutableStateList()
                                                     if (favourites.isEmpty()) {
@@ -221,15 +215,11 @@ class PokemonActivity : ComponentActivity() {
                                                             animatedVisibilityScope = this@AnimatedContent,
                                                             state = favListState,
                                                             isLoading = false,
-                                                            isAnimating=isAnimating
+                                                            isAnimating=isAnimating,
+                                                            setIsAnimating={isAnimating=true}
                                                         )
                                                     }
                                                 } else {
-                                                    LaunchedEffect(true) {
-                                                        isAnimating=true
-                                                        delay(250)
-                                                        isAnimating=false
-                                                    }
                                                     val pokemon: Pokemon? by remember {
                                                         mutableStateOf(list.find { it.name == state })
                                                     }
@@ -242,7 +232,8 @@ class PokemonActivity : ComponentActivity() {
                                                             this@SharedTransitionLayout,
                                                             this@AnimatedContent,
                                                             service,
-                                                            isAnimating
+                                                            isAnimating,
+                                                            setIsAnimating={isAnimating=true}
                                                         )
                                                     }
                                                 }

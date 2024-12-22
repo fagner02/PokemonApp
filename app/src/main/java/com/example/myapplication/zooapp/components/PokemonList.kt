@@ -54,7 +54,8 @@ fun PokemonList(
     animatedVisibilityScope: AnimatedVisibilityScope,
     state: LazyListState,
     isLoading: Boolean,
-    isAnimating: Boolean
+    isAnimating: Boolean,
+    setIsAnimating: () -> Unit
 ) {
     with(sharedTransitionScope) {
         Column(modifier = modifier.fillMaxSize()) {
@@ -83,7 +84,6 @@ fun PokemonList(
 
             )
 
-
             val coroutine = rememberCoroutineScope()
 
             LazyColumn(
@@ -107,6 +107,7 @@ fun PokemonList(
                                 selecting = false
                                 timedout = false
 
+                                setIsAnimating()
                                 onSelectPokemon(pokemonName.name)
                             }
                         }
