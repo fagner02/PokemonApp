@@ -55,7 +55,7 @@ fun MusicPlayer(songUrl: String) {
     player.addListener(object : Player.Listener {
         @Deprecated("Deprecated in Java")
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-            if (playbackState == ExoPlayer.STATE_READY) {
+            if (playbackState == ExoPlayer.STATE_READY && player.isPlaying) {
                 isPlaying = true
             }
             if (playbackState == ExoPlayer.STATE_ENDED) {
@@ -71,6 +71,9 @@ fun MusicPlayer(songUrl: String) {
 
     val scope = rememberCoroutineScope()
     LaunchedEffect(isPlaying) {
+        if(!isPlaying){
+            sliderPosition = 0f
+        }
         scope.launch {
             while (isPlaying) {
                 sliderPosition = player.currentPosition.toFloat()
@@ -95,7 +98,9 @@ fun MusicPlayer(songUrl: String) {
             IconButton(
                 onClick = {
                     if(totalDuration == 0L) return@IconButton
-                    player.seekTo(0)
+                    if(isPlaying){
+                        player.seekTo(0)
+                    }
                     player.play()
                 }
             ) {

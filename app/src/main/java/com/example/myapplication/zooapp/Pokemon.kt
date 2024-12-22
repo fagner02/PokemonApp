@@ -140,10 +140,8 @@ class PokemonActivity : ComponentActivity() {
 
                                 LaunchedEffect(isAnimating) {
                                     if(isAnimating) {
-                                        println("anim in")
                                         delay(450)
                                         isAnimating = false
-                                        println("anim out")
                                     }
                                 }
                                 NavHost(navController, startDestination = "list") {
