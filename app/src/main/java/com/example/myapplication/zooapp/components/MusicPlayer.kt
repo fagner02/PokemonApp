@@ -115,7 +115,6 @@ fun MusicPlayer(songUrl: String) {
                 value = sliderPosition,
                 onValueChange = {
                     sliderPosition = it
-                    isPlaying = false
                 },
                 onValueChangeFinished = {
                     if(totalDuration ==0L)return@Slider
