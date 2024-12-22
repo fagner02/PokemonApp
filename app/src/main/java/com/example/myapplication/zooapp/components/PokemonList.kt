@@ -95,7 +95,8 @@ fun PokemonList(
                 state = state,
                 userScrollEnabled = !isAnimating
             ) {
-                itemsIndexed(list.filter { it.name.contains(searchQuery) }) { index, pokemonName ->
+                itemsIndexed(list.filter { it.name.contains(searchQuery) },
+                    key = {_, pokemon -> pokemon.name}) { index, pokemonName ->
                     var selecting by remember { mutableStateOf(false) }
                     var timedout by remember { mutableStateOf(false) }
                     if (selecting && (state.isScrollInProgress && !timedout)) {

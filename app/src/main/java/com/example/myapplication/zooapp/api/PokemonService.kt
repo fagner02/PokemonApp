@@ -1,5 +1,6 @@
 package com.example.myapplication.zooapp.api
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.toMutableStateList
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -31,7 +32,8 @@ data class EncounterVersion(val encounter_details: List<EncounterDetails>, val m
 @Serializable
 data class Encounter(val location_area: ApiResource, val version_details:  List<EncounterVersion>)
 @Serializable
-data class Pokemon(var name: String, var loaded: Boolean= true, val types: List<TypeSlot>, val sprites: Sprites, val cries: Cries, val abilities: List<AbilitySlot>)
+@Immutable
+data class Pokemon(val name: String, val types: List<TypeSlot>, val sprites: Sprites, val cries: Cries, val abilities: List<AbilitySlot>)
 @Serializable
 data class Location(val names: List<Name>)
 @Serializable
@@ -48,21 +50,20 @@ class PokemonService {
 
     suspend fun getPokemon(): Pokemon? {
         try {
-            if(next == null){
+            if (next == null) {
                 return null
             }
             val res = client.get { url("$next") }
             val resourceList = Gson().fromJson(res.bodyAsText(), ApiResourceList::class.java)
-                val pokeRes =
-                    HttpClient().get { url("https://pokeapi.co/api/v2/pokemon/${resourceList.results[0].name}") }
-                val pokemon =
-                    Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
+            val pokeRes =
+                client.get { url("https://pokeapi.co/api/v2/pokemon/${resourceList.results[0].name}") }
+            val pokemon =
+                Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
 
             next = resourceList.next
             return pokemon
-        }
-        catch (e:Error) {
-            return  null
+        } catch (e: Throwable) {
+            return null
         }
     }
 
@@ -72,7 +73,7 @@ class PokemonService {
             val listType = object : TypeToken<List<Encounter>>() {}.type
             val encounters = Gson().fromJson<List<Encounter>>(res.bodyAsText(), listType)
             return encounters.toMutableStateList()
-        } catch (e: Error){
+        } catch (e: Throwable){
             return emptyList<Encounter>().toMutableStateList()
         }
     }
@@ -82,7 +83,7 @@ class PokemonService {
             val res = client.get { url(url) }
             val ability = Gson().fromJson(res.bodyAsText(), AbilityDetails::class.java)
             return ability
-        } catch (e: Error) {
+        } catch (e: Throwable) {
             return AbilityDetails(emptyList(), emptyList())
         }
     }
@@ -92,7 +93,7 @@ class PokemonService {
             val res = client.get { url(url) }
             val location = Gson().fromJson(res.bodyAsText(), Location::class.java)
             return location
-        }catch (e: Error){
+        }catch (e: Throwable){
             return Location(emptyList())
         }
     }
