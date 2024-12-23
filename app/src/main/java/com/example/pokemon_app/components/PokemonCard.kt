@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,10 +35,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.example.pokemon_app.R
 import com.example.pokemon_app.api.Pokemon
 import com.example.pokemon_app.favList
 import com.example.pokemon_app.theme.typeColors
@@ -115,7 +116,7 @@ fun PokemonCard(
                         }
                     }) {
                         Icon(
-                            painterResource(if (favList.contains(pokemon.name)) R.drawable.favfill else R.drawable.favout),
+                            if (favList.contains(pokemon.name)) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                             contentDescription = "favoritar",
                             modifier = Modifier.sharedElement(
                                 rememberSharedContentState(key = "${pokemon.name}-fav"),
