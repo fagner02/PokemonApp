@@ -83,7 +83,6 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation (libs.accompanist.systemuicontroller)
     implementation(libs.translate)
-
     implementation (libs.androidx.core.core.ktx.v1120)
     implementation (libs.androidx.compose.ui.ui.v153)
     implementation (libs.material3)
@@ -96,6 +95,8 @@ dependencies {
     implementation (libs.androidx.material.icons.core)
     implementation (libs.material.icons.extended)
     implementation (libs.androidx.core.ktx.v1101)
+
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
