@@ -10,7 +10,6 @@ import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.Serializable
 
-@Suppress("PropertyName")
 @Serializable
 data class ApiResource(val url: String, val name:String)
 @Serializable
