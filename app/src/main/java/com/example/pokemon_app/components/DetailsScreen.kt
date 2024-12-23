@@ -1,4 +1,4 @@
-package com.example.myapplication.components
+package com.example.pokemon_app.components
 
 import android.graphics.Color.parseColor
 import androidx.annotation.OptIn
@@ -51,12 +51,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
-import com.example.myapplication.api.AbilityDetails
-import com.example.myapplication.api.Encounter
-import com.example.myapplication.api.Pokemon
-import com.example.myapplication.api.PokemonService
-import com.example.myapplication.favList
-import com.example.myapplication.theme.pokemonVersionColors
+import com.example.pokemon_app.api.AbilityDetails
+import com.example.pokemon_app.api.Encounter
+import com.example.pokemon_app.api.Pokemon
+import com.example.pokemon_app.api.PokemonService
+import com.example.pokemon_app.favList
+import com.example.pokemon_app.theme.pokemonVersionColors
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions

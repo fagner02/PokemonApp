@@ -1,4 +1,4 @@
-package com.example.myapplication.components
+package com.example.pokemon_app.components
 
 import android.graphics.Color.parseColor
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -35,10 +35,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.example.myapplication.R
-import com.example.myapplication.api.Pokemon
-import com.example.myapplication.favList
-import com.example.myapplication.theme.typeColors
+import com.example.pokemon_app.R
+import com.example.pokemon_app.api.Pokemon
+import com.example.pokemon_app.favList
+import com.example.pokemon_app.theme.typeColors
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable

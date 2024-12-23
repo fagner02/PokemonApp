@@ -1,4 +1,4 @@
-package com.example.myapplication.api
+package com.example.pokemon_app.api
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.toMutableStateList

@@ -1,4 +1,4 @@
-package com.example.myapplication.components
+package com.example.pokemon_app.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.myapplication.R
+import com.example.pokemon_app.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

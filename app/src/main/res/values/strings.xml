@@ -1,14 +1,4 @@
 <resources>
-    <string name="app_name">My Application</string>
-    <string name="greeting">Mal vindo</string>
-    <string name="hint">Digite algo</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_main2">MainActivity2</string>
-    <string name="title_activity_animal">Animal</string>
-    <string name="title_activity_animal_screen">AnimalScreen</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="title_activity_theme_app">ThemeApp</string>
-    <string name="title_activity_draw_content">DrawContent</string>
-    <string name="title_activity_night_events">NightEvents</string>
+    <string name="app_name">Pokemon App</string>
+    <string name="title_activity_main">Pokemon App</string>
 </resources>

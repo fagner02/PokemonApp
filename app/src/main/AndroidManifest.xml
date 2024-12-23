@@ -17,7 +17,7 @@
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="31">
         <activity
-            android:name=".PokemonActivity"
+            android:name="com.example.pokemon_app.PokemonActivity"
             android:exported="true"
             android:label="@string/title_activity_main"
             android:theme="@style/Theme.MyApplication">
@@ -26,8 +26,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
     </application>
-
 </manifest>

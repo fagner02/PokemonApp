@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-package com.example.myapplication
+package com.example.pokemon_app
 
 import android.os.Bundle
 import android.widget.Toast
@@ -44,15 +44,15 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.api.Pokemon
-import com.example.myapplication.api.PokemonService
-import com.example.myapplication.components.BottomBar
-import com.example.myapplication.components.DetailsScreen
-import com.example.myapplication.components.HelpAndSupportScreen
-import com.example.myapplication.components.PokemonList
-import com.example.myapplication.components.SettingsScreen
-import com.example.myapplication.components.TopBar
-import com.example.myapplication.theme.MyApplicationTheme
+import com.example.pokemon_app.api.Pokemon
+import com.example.pokemon_app.api.PokemonService
+import com.example.pokemon_app.components.BottomBar
+import com.example.pokemon_app.components.DetailsScreen
+import com.example.pokemon_app.components.HelpAndSupportScreen
+import com.example.pokemon_app.components.PokemonList
+import com.example.pokemon_app.components.SettingsScreen
+import com.example.pokemon_app.components.TopBar
+import com.example.pokemon_app.theme.PokemonAppTheme
 import kotlinx.coroutines.delay
 
 val favList: MutableList<String> = mutableStateListOf()
@@ -88,7 +88,7 @@ class PokemonActivity : ComponentActivity() {
                 isLoading=false
             }
 
-            MyApplicationTheme(
+            PokemonAppTheme(
                 darkTheme = isDarkModeEnabled
             ) {
                 var route by remember { mutableStateOf("list") }

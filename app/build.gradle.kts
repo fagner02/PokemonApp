@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapplication"
+    namespace = "com.example.pokemon_app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.myapplication"
+        applicationId = "com.example.pokemon_app"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -95,8 +95,6 @@ dependencies {
     implementation (libs.androidx.material.icons.core)
     implementation (libs.material.icons.extended)
     implementation (libs.androidx.core.ktx.v1101)
-
-
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
