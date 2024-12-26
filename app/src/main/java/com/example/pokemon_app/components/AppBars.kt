@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.BottomNavigationDefaults.windowInsets
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.CatchingPokemon
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.rounded.Menu
@@ -86,6 +88,19 @@ fun BottomBar(route: String, navController: NavHostController) {
                         contentDescription = "favoritos"
                     )
                     Text("favoritos")
+                }
+            }
+
+            TextButton(enabled = route != "garden",
+                colors = bottomBarButtonColors,
+                onClick = { navController.navigate("garden") }) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        if (route != "garden" +
+                            "") Icons.Outlined.CatchingPokemon else Icons.Filled.CatchingPokemon,
+                        contentDescription = "jardin"
+                    )
+                    Text("jardin")
                 }
             }
         }

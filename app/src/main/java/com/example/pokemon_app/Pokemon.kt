@@ -48,6 +48,7 @@ import com.example.pokemon_app.api.Pokemon
 import com.example.pokemon_app.api.PokemonService
 import com.example.pokemon_app.components.BottomBar
 import com.example.pokemon_app.components.DetailsScreen
+import com.example.pokemon_app.components.GardenScreen
 import com.example.pokemon_app.components.HelpAndSupportScreen
 import com.example.pokemon_app.components.PokemonList
 import com.example.pokemon_app.components.SettingsScreen
@@ -237,6 +238,9 @@ class PokemonActivity : ComponentActivity() {
                                                 }
                                             }
                                         }
+                                    }
+                                    composable("garden"){
+                                        GardenScreen(list.filter { x-> x.name.contains("cha") })
                                     }
                                     composable("settings") {
                                         var isNotificationsEnabled by remember { mutableStateOf(true) }
