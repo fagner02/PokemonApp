@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package com.example.pokemon_app
 
 import android.os.Bundle
@@ -8,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -47,12 +44,6 @@ import com.example.pokemon_app.theme.PokemonAppTheme
 import kotlinx.coroutines.delay
 
 val favList: MutableList<String> = mutableStateListOf()
-
-enum class MainScreens {
-    fav,
-    list,
-    garden,
-}
 
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
