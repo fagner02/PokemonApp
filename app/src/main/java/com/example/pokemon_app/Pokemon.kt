@@ -42,7 +42,7 @@ import com.example.pokemon_app.components.BottomBar
 import com.example.pokemon_app.components.Drawer
 import com.example.pokemon_app.components.GardenScreen
 import com.example.pokemon_app.components.HelpAndSupportScreen
-import com.example.pokemon_app.components.HomeScreen
+import com.example.pokemon_app.components.ListScreen
 import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.theme.PokemonAppTheme
@@ -130,7 +130,7 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
-                                HomeScreen(
+                                ListScreen(
                                     list,
                                     { input ->
                                         searchQuery = input
@@ -148,7 +148,7 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                                 ) {
-                                HomeScreen(
+                                ListScreen(
                                     list.filter { favList.contains(it.name) }.toMutableStateList(),
                                     { input -> searchQuery = input },
                                     searchQuery,

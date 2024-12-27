@@ -15,7 +15,7 @@ import com.example.pokemon_app.api.PokemonService
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreen(
+fun ListScreen(
     list: MutableList<Pokemon>,
     searchInput: (String)->Unit,
     searchQuery: String,
