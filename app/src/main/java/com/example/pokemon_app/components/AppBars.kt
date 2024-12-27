@@ -114,6 +114,9 @@ fun TopBar(route: String, navController: NavHostController, scope: CoroutineScop
         when (route) {
             "list"->"Início"
             "fav"-> "Favoritos"
+            "garden" -> "Jardin"
+            "settings" -> "Configurações"
+            "help" -> "Ajuda"
             else -> navController.currentBackStackEntry?.arguments?.getString("pokemon")
                 ?:
                 ""

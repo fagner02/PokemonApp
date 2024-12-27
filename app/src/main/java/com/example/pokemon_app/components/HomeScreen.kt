@@ -25,7 +25,7 @@ fun HomeScreen(
     setIsAnimating: ()->Unit,
     service: PokemonService,
     modifier: Modifier,
-    emptyListContent: @Composable() (() -> Unit)? =null
+    emptyListContent: (@Composable () -> Unit)? = null
 ) {
     var selected by remember { mutableStateOf("") }
     SharedTransitionLayout {
