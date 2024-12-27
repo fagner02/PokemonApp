@@ -171,17 +171,13 @@ fun PokemonSprite(maxWidth: Dp, pad: Dp, ratio: Float, url: String?){
             var donex = false
             var doney = false
             scope.launch {
-                try {
-                    offset.animateTo(
-                        0f,
-                        infiniteRepeatable(
-                            tween(200),
-                            repeatMode = RepeatMode.Reverse
-                        )
+                offset.animateTo(
+                    0f,
+                    infiniteRepeatable(
+                        tween(200),
+                        repeatMode = RepeatMode.Reverse
                     )
-                } catch (e: Throwable) {
-                    println("erro")
-                }
+                )
             }
             scope.launch {
                 posx.animateTo(

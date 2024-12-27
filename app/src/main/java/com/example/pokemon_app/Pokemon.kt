@@ -70,6 +70,18 @@ class PokemonActivity : ComponentActivity() {
             var isDarkModeEnabled by remember { mutableStateOf(false) }
             val color = MaterialTheme.colorScheme.background.toArgb()
             var isLoading by remember { mutableStateOf(false) }
+            var lastRoute by remember { mutableStateOf("list") }
+            var route by remember { mutableStateOf("list") }
+
+            val navController = rememberNavController()
+            navController.addOnDestinationChangedListener { _, dest, _ ->
+                run {
+                    if ((dest.route ?: "list") != route) {
+                        lastRoute = route
+                        route = dest.route ?: "list"
+                    }
+                }
+            }
 
             LaunchedEffect(isDarkModeEnabled) {
                 enableEdgeToEdge(
@@ -93,15 +105,6 @@ class PokemonActivity : ComponentActivity() {
             PokemonAppTheme(
                 darkTheme = isDarkModeEnabled
             ) {
-                var lastRoute by remember { mutableStateOf("list") }
-                var route by remember { mutableStateOf("list") }
-                val navController = rememberNavController()
-                navController.addOnDestinationChangedListener { _, dest, _ ->
-                    run {
-                        lastRoute = route
-                        route = dest.route ?: "list"
-                    }
-                }
 
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
@@ -144,7 +147,7 @@ class PokemonActivity : ComponentActivity() {
                             composable("fav",
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
-                                ) {
+                            ) {
                                 ListScreen(
                                     list.filter { favList.contains(it.name) }.toMutableStateList(),
                                     { input -> searchQuery = input },
@@ -169,7 +172,7 @@ class PokemonActivity : ComponentActivity() {
                             composable("garden",
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
-                                ) {
+                            ) {
                                 GardenScreen(list.filter { x -> x.name.contains("cha") })
                             }
                             composable("settings",
