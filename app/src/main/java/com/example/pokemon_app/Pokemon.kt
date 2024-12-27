@@ -63,8 +63,7 @@ class PokemonActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-        )
+        enableEdgeToEdge()
 
         setContent {
             val list: MutableList<Pokemon> = remember { emptyList<Pokemon>().toMutableStateList() }
@@ -132,9 +131,7 @@ class PokemonActivity : ComponentActivity() {
                             ) {
                                 ListScreen(
                                     list,
-                                    { input ->
-                                        searchQuery = input
-                                    },
+                                    { input -> searchQuery = input },
                                     searchQuery,
                                     listState,
                                     isLoading,
