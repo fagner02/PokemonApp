@@ -8,24 +8,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -39,18 +31,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pokemon_app.api.Pokemon
 import com.example.pokemon_app.api.PokemonService
 import com.example.pokemon_app.components.BottomBar
-import com.example.pokemon_app.components.DetailsScreen
+import com.example.pokemon_app.components.Drawer
 import com.example.pokemon_app.components.GardenScreen
 import com.example.pokemon_app.components.HelpAndSupportScreen
-import com.example.pokemon_app.components.PokemonList
+import com.example.pokemon_app.components.HomeScreen
 import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.theme.PokemonAppTheme
@@ -58,10 +48,15 @@ import kotlinx.coroutines.delay
 
 val favList: MutableList<String> = mutableStateListOf()
 
+enum class MainScreens {
+    fav,
+    list,
+    garden,
+}
+
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
 
-    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -71,22 +66,25 @@ class PokemonActivity : ComponentActivity() {
             val list: MutableList<Pokemon> = remember { emptyList<Pokemon>().toMutableStateList() }
             var isDarkModeEnabled by remember { mutableStateOf(false) }
             val color = MaterialTheme.colorScheme.background.toArgb()
-            var isLoading by remember{ mutableStateOf( false)}
+            var isLoading by remember { mutableStateOf(false) }
 
             LaunchedEffect(isDarkModeEnabled) {
                 enableEdgeToEdge(
-                    statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.dark(Color.Black.toArgb()) else SystemBarStyle.light(color,color)
+                    statusBarStyle = if (isDarkModeEnabled) SystemBarStyle.dark(Color.Black.toArgb()) else SystemBarStyle.light(
+                        color,
+                        color
+                    )
                 )
             }
             LaunchedEffect(true) {
-                isLoading=true
+                isLoading = true
                 var res = service.getPokemon()
                 while (res != null) {
                     list.add(res)
                     delay(0)
                     res = service.getPokemon()
                 }
-                isLoading=false
+                isLoading = false
             }
 
             PokemonAppTheme(
@@ -103,174 +101,101 @@ class PokemonActivity : ComponentActivity() {
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
 
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                    ModalNavigationDrawer(
-                        drawerState = drawerState,
-                        drawerContent = {
-                            ModalDrawerSheet(Modifier.fillMaxWidth(0.6f)) {
-                                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        TextButton(onClick = {
-                                            navController.navigate("settings")
-                                        }) {
-                                            Text("Configurações")
-                                        }
-                                        TextButton(onClick = {
-                                            navController.navigate("help")
-                                        }) {
-                                            Text("Ajuda")
-                                        }
+                Drawer(navController, drawerState) {
+                    Scaffold(modifier = Modifier.fillMaxSize(),
+                        bottomBar = { BottomBar(route, navController) },
+                        topBar = { TopBar(route, navController, scope, drawerState) }
+                    ) { innerPadding ->
+                        var searchQuery by remember { mutableStateOf("") }
+                        val listState = rememberLazyListState()
+                        val favListState = rememberLazyListState()
+                        var isAnimating by remember { mutableStateOf(false) }
 
+                        LaunchedEffect(isAnimating) {
+                            if (isAnimating) {
+                                delay(450)
+                                isAnimating = false
+                            }
+                        }
+                        NavHost(navController, startDestination = "list") {
+                            composable("list") {
+                                HomeScreen(
+                                    list,
+                                    { input ->
+                                        searchQuery = input
+                                    },
+                                    searchQuery,
+                                    listState,
+                                    isLoading,
+                                    isAnimating,
+                                    setIsAnimating = { isAnimating = true },
+                                    service,
+                                    Modifier.padding(innerPadding)
+                                )
+                            }
+                            composable("fav") {
+                                HomeScreen(
+                                    list.filter { favList.contains(it.name) }.toMutableStateList(),
+                                    { input -> searchQuery = input },
+                                    searchQuery,
+                                    favListState,
+                                    false,
+                                    isAnimating,
+                                    setIsAnimating = { isAnimating = true },
+                                    service,
+                                    Modifier.padding(innerPadding)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(innerPadding)
+                                            .fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("Você ainda não tem favoritos")
                                     }
                                 }
                             }
-                        }
-                    ) {
-                        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                            Scaffold(modifier = Modifier.fillMaxSize(),
-                                bottomBar = { BottomBar(route, navController) },
-                                topBar = { TopBar(route, navController, scope, drawerState) }
-                            ) { innerPadding ->
-                                var searchQuery by remember { mutableStateOf("") }
-                                val listState = rememberLazyListState()
-                                val favListState = rememberLazyListState()
-                                var isAnimating by remember { mutableStateOf(false) }
+                            composable("garden") {
+                                GardenScreen(list.filter { x -> x.name.contains("cha") })
+                            }
+                            composable("settings") {
+                                var isNotificationsEnabled by remember { mutableStateOf(true) }
+                                val context = LocalContext.current
 
-                                LaunchedEffect(isAnimating) {
-                                    if(isAnimating) {
-                                        delay(450)
-                                        isAnimating = false
+                                SettingsScreen(
+                                    isDarkModeEnabled = isDarkModeEnabled,
+                                    isNotificationsEnabled = isNotificationsEnabled,
+                                    onToggleDarkMode = { isDarkModeEnabled = it },
+                                    onToggleNotifications = { isNotificationsEnabled = it },
+                                    onClearFavorites = {
+                                        favList.clear()
+                                        Toast.makeText(
+                                            context,
+                                            "Favoritos limpos com sucesso!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    },
+                                    onResetPreferences = {
+                                        isDarkModeEnabled = false
+                                        isNotificationsEnabled = true
+                                        favList.clear()
+                                        Toast.makeText(
+                                            context,
+                                            "Preferências redefinidas com sucesso!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
-                                }
-                                NavHost(navController, startDestination = "list") {
-                                    composable("list") {
-                                        var selected by remember { mutableStateOf("") }
-                                        SharedTransitionLayout {
-                                            AnimatedContent(selected, label = "hero") { state ->
-                                                if (state == "") {
-                                                    PokemonList(
-                                                        list,
-                                                        modifier = Modifier.padding(innerPadding),
-                                                        onSelectPokemon = { name ->
-                                                            selected = name
-                                                        },
-                                                        onInputQuery = { input ->
-                                                            searchQuery = input
-                                                        },
-                                                        searchQuery = searchQuery,
-                                                        sharedTransitionScope = this@SharedTransitionLayout,
-                                                        animatedVisibilityScope = this@AnimatedContent,
-                                                        state = listState,
-                                                        isLoading = isLoading,
-                                                        isAnimating = isAnimating,
-                                                        setIsAnimating={isAnimating=true}
-                                                    )
-                                                } else {
-                                                    val pokemon: Pokemon? by remember {
-                                                        mutableStateOf(list.find { it.name == state })
-                                                    }
-                                                    if (pokemon != null) {
-                                                        DetailsScreen(
-                                                            pokemon!!,
-                                                            modifier = Modifier.padding(innerPadding),
-                                                            { selected = "" },
-                                                            searchQuery,
-                                                            this@SharedTransitionLayout,
-                                                            this@AnimatedContent,
-                                                            service,
-                                                            isAnimating,
-                                                            setIsAnimating={isAnimating=true}
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    composable("fav") {
-                                        var selected by remember { mutableStateOf("") }
-                                        SharedTransitionLayout {
-                                            AnimatedContent(selected, label = "fav") { state ->
-                                                if (state == "") {
-                                                    val favourites:MutableList<Pokemon> =
-                                                        list.filter { favList.contains(it.name) }.toMutableStateList()
-                                                    if (favourites.isEmpty()) {
-                                                        Box(modifier = Modifier
-                                                            .padding(innerPadding)
-                                                            .fillMaxSize()
-                                                            , contentAlignment = Alignment.Center) {
-                                                            Text("Você ainda não tem favoritos")
-                                                        }
-                                                    } else {
-                                                        PokemonList(
-                                                            favourites,
-                                                            modifier = Modifier.padding(innerPadding),
-                                                            onSelectPokemon = { selected = it },
-                                                            onInputQuery = { searchQuery = it },
-                                                            searchQuery = searchQuery,
-                                                            sharedTransitionScope = this@SharedTransitionLayout,
-                                                            animatedVisibilityScope = this@AnimatedContent,
-                                                            state = favListState,
-                                                            isLoading = false,
-                                                            isAnimating=isAnimating,
-                                                            setIsAnimating={isAnimating=true}
-                                                        )
-                                                    }
-                                                } else {
-                                                    val pokemon: Pokemon? by remember {
-                                                        mutableStateOf(list.find { it.name == state })
-                                                    }
-                                                    if (pokemon != null) {
-                                                        DetailsScreen(
-                                                            pokemon!!,
-                                                            modifier = Modifier.padding(innerPadding),
-                                                            { selected = "" },
-                                                            searchQuery,
-                                                            this@SharedTransitionLayout,
-                                                            this@AnimatedContent,
-                                                            service,
-                                                            isAnimating,
-                                                            setIsAnimating={isAnimating=true}
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    composable("garden"){
-                                        GardenScreen(list.filter { x-> x.name.contains("cha") })
-                                    }
-                                    composable("settings") {
-                                        var isNotificationsEnabled by remember { mutableStateOf(true) }
-                                        val context = LocalContext.current
-
-                                        SettingsScreen(
-                                            isDarkModeEnabled = isDarkModeEnabled,
-                                            isNotificationsEnabled = isNotificationsEnabled,
-                                            onToggleDarkMode = { isDarkModeEnabled = it },
-                                            onToggleNotifications = { isNotificationsEnabled = it },
-                                            onClearFavorites = {
-                                                favList.clear()
-                                                Toast.makeText(context, "Favoritos limpos com sucesso!", Toast.LENGTH_SHORT).show()
-                                            },
-                                            onResetPreferences = {
-                                                isDarkModeEnabled = false
-                                                isNotificationsEnabled = true
-                                                favList.clear()
-                                                Toast.makeText(context,"Preferências redefinidas com sucesso!", Toast.LENGTH_SHORT).show()
-                                            }
-                                        )
-                                    }
-                                    composable("help") {
-                                        val context = LocalContext.current
-                                        HelpAndSupportScreen (onSendSupportMessage = { message ->
-                                            Toast.makeText(context, "Mensagem enviada: $message", Toast.LENGTH_SHORT).show()
-                                        },modifier = Modifier.padding(innerPadding))
-                                    }
-
-                                }
+                                )
+                            }
+                            composable("help") {
+                                val context = LocalContext.current
+                                HelpAndSupportScreen(onSendSupportMessage = { message ->
+                                    Toast.makeText(
+                                        context,
+                                        "Mensagem enviada: $message",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }, modifier = Modifier.padding(innerPadding))
                             }
                         }
                     }
@@ -279,3 +204,4 @@ class PokemonActivity : ComponentActivity() {
         }
     }
 }
+
