@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,45 +50,52 @@ fun ExpandableCard(title: String, modifier: Modifier=Modifier, containerColor: a
                     durationMillis = 300,
                     easing = LinearOutSlowInEasing
                 )
-            )
+            ),
+        colors = CardDefaults.cardColors().copy(containerColor = containerColor)
+    ) {
+        Box(modifier = Modifier
             .clickable(
                 onClick = {
                     expandedState = !expandedState
                 }
-            ),
-        colors = CardDefaults.cardColors().copy(containerColor = containerColor)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            )
         ) {
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    trailingContent()
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-
-                        )
-
-                }
-                Icon(
-                    Icons.Rounded.KeyboardArrowDown,
-                    contentDescription = "expandir",
+                Row(
                     modifier = Modifier
-                        .weight(0.1f).size(24.dp).rotate(angle)
-                )
-            }
-            if (expandedState) {
-                Spacer(Modifier.height(5.dp))
-                content()
+                        .fillMaxWidth(),
+
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        trailingContent()
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+
+                            )
+
+                    }
+                    Icon(
+                        Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = "expandir",
+                        modifier = Modifier
+                            .weight(0.1f).size(24.dp).rotate(angle)
+                    )
+                }
+                if (expandedState) {
+                    Spacer(Modifier.height(5.dp))
+                    content()
+                }
             }
         }
     }
