@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -145,22 +146,7 @@ fun DetailsScreen(
                         ) {
                             Icon(Icons.AutoMirrored.Outlined.ArrowBack, "voltar")
                         }
-                        IconButton(onClick = {
-                            if (favList.contains(pokemon.name)) {
-                                favList.remove(pokemon.name)
-                            } else {
-                                favList.add(pokemon.name)
-                            }
-                        }) {
-                            Icon(
-                                if (favList.contains(pokemon.name)) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                                "favoritar",
-                                modifier = Modifier.sharedElement(
-                                    rememberSharedContentState(key = "${pokemon.name}-fav"),
-                                    animatedVisibilityScope
-                                )
-                            )
-                        }
+                        FavouriteButton(pokemon, sharedTransitionScope, animatedVisibilityScope, MaterialTheme.colorScheme.onSurface)
                     }
                     AsyncImage(
                         pokemon.sprites.front_default,
@@ -250,6 +236,7 @@ fun DetailsScreen(
                         }
 
                     }
+                    var loading by remember { mutableStateOf(true) }
                     val list = remember { mutableStateMapOf<String, MutableList<String>>() }
                     LaunchedEffect(encounters.size) {
                         encounters.forEach { encounter ->
@@ -267,11 +254,12 @@ fun DetailsScreen(
                                             if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
                                         })
                                 } else {
-                                    if (loc.names.isNotEmpty())
-                                        list[version.version.name]?.add(loc.names[0].name)
+                                    list[version.version.name]?.add(loc.names[0].name)
                                 }
                             }
                         }
+                        if (!list.isEmpty()){
+                        loading = false}
                     }
                     Column(
                         horizontalAlignment = Alignment.Start,
@@ -282,6 +270,12 @@ fun DetailsScreen(
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.fillMaxWidth()
                         )
+                        if (loading && list.isNotEmpty()) {
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                        }
                         if (list.isEmpty()) {
                             Text("Sem informações sobre onde encontrar esse pokemon")
                         }
@@ -331,3 +325,4 @@ fun DetailsScreen(
         }
     }
 }
+

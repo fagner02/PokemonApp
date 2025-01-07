@@ -101,8 +101,9 @@ fun PokemonList(
                 state = state,
                 userScrollEnabled = !isAnimating
             ) {
-                items(filtered.size + if (isLoading) (if (searchQuery=="") 50 else 5) else 0,
-                    key = { if (it < filtered.size) filtered[it].name else "$it" }) {
+                items(
+                    filtered.size + if (isLoading) (if (searchQuery=="") 50 else 5) else 0,
+                    key = { if (it < filtered.size) filtered[it].name else "$it" },) {
                     if (it < filtered.size) {
                         val pokemon = filtered[it]
                         var selecting by remember { mutableStateOf(false) }
@@ -129,7 +130,6 @@ fun PokemonList(
                                 }
                             }
                         }
-
                         PokemonCard(
                             pokemon,
                             it,
@@ -143,6 +143,7 @@ fun PokemonList(
                             },
                             animatedVisibilityScope = animatedVisibilityScope,
                             sharedTransitionScope = sharedTransitionScope,
+                            modifier = Modifier.animateItem()
                         )
                     } else {
                         PokemonCardPlaceholder()

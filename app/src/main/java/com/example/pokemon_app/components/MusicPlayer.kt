@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.material.icons.Icons
@@ -39,6 +41,7 @@ fun MusicPlayer(songUrl: String) {
     val context = LocalContext.current
     val player = remember { ExoPlayer.Builder(context).build() }
 
+    var isLoaded by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(false) }
     val currentPosition = remember {
         mutableLongStateOf(0)
@@ -65,6 +68,7 @@ fun MusicPlayer(songUrl: String) {
             }
             if (playbackState == ExoPlayer.STATE_READY && totalDuration == 0L) {
                 totalDuration = player.duration
+                isLoaded = true
             }
         }
     })
@@ -95,21 +99,27 @@ fun MusicPlayer(songUrl: String) {
     ) {
         Row(
         ) {
-            IconButton(
-                onClick = {
-                    if(totalDuration == 0L) return@IconButton
-                    if(isPlaying){
-                        player.seekTo(0)
+            if (isLoaded) {
+                IconButton(
+                    onClick = {
+                        if (totalDuration == 0L) return@IconButton
+                        if (isPlaying) {
+                            player.seekTo(0)
+                        }
+                        player.play()
                     }
-                    player.play()
+                ) {
+                    Icon(
+                        Icons.Rounded.PlayArrow,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        contentDescription = "play"
+                    )
                 }
-            ) {
-                Icon(
-                    Icons.Rounded.PlayArrow,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    contentDescription = "play"
-                )
-            }
+            } else CircularProgressIndicator(
+                modifier = Modifier.padding(16.dp)
+                    .size(24.dp),
+                color = MaterialTheme.colorScheme.onPrimary
+            )
             Slider(
                 modifier = Modifier.padding(end = 16.dp),
                 value = sliderPosition,

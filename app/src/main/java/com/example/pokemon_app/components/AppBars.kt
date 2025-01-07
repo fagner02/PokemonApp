@@ -98,9 +98,9 @@ fun BottomBar(route: String, navController: NavHostController) {
                     Icon(
                         if (route != "garden" +
                             "") Icons.Outlined.CatchingPokemon else Icons.Filled.CatchingPokemon,
-                        contentDescription = "jardin"
+                        contentDescription = "jardim"
                     )
-                    Text("jardin")
+                    Text("jardim")
                 }
             }
         }
@@ -114,7 +114,7 @@ fun TopBar(route: String, navController: NavHostController, scope: CoroutineScop
         when (route) {
             "list"->"Início"
             "fav"-> "Favoritos"
-            "garden" -> "Jardin"
+            "garden" -> "Jardim"
             "settings" -> "Configurações"
             "help" -> "Ajuda"
             else -> navController.currentBackStackEntry?.arguments?.getString("pokemon")

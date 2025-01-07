@@ -49,12 +49,13 @@ fun PokemonCard(
     index: Int,
     scrollToItem: (Int)->Unit,
     sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    modifier: Modifier
 ) {
     with(sharedTransitionScope) {
+
         Card(
-            modifier = Modifier
-                .animateContentSize()
+            modifier = modifier
                 .sharedElement(
                     rememberSharedContentState(key = pokemon.name),
                     animatedVisibilityScope
@@ -100,36 +101,45 @@ fun PokemonCard(
                                     animatedVisibilityScope
                                 )
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(5.dp),
                                 modifier = Modifier.sharedElement(
                                     rememberSharedContentState(key = "${pokemon.name}-type"),
                                     animatedVisibilityScope
-                                )) {
+                                )
+                            ) {
                                 TypesLabel(pokemon)
                             }
                         }
                     }
-                    TextButton(onClick = {
-                        if (favList.contains(pokemon.name)) {
-                            favList.remove(pokemon.name)
-                        } else {
-                            favList.add(pokemon.name)
-                        }
-                    }) {
-                        Icon(
-                            if (favList.contains(pokemon.name)) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "favoritar",
-                            modifier = Modifier.sharedElement(
-                                rememberSharedContentState(key = "${pokemon.name}-fav"),
-                                animatedVisibilityScope
-                            )
-                        )
-                    }
+//                    TextButton(onClick = {
+//                        if (favList.contains(pokemon.name)) {
+//                            favList.remove(pokemon.name)
+//                        } else {
+//                            favList.add(pokemon.name)
+//                        }
+//                    }) {
+//                        Icon(
+//                            if (favList.contains(pokemon.name)) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+//                            contentDescription = "favoritar",
+//                            modifier = Modifier.sharedElement(
+//                                rememberSharedContentState(key = "${pokemon.name}-fav"),
+//                                animatedVisibilityScope
+//                            )
+//                        )
+//                    }
+                    FavouriteButton(
+                        pokemon,
+                        sharedTransitionScope,
+                        animatedVisibilityScope,
+                        MaterialTheme.colorScheme.surfaceTint
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun PokemonCardPlaceholder(
