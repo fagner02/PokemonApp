@@ -41,6 +41,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -99,6 +102,8 @@ private fun createNotificationChannel(context: Context) {
         notificationManager.createNotificationChannel(channel)
     }
 }
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
