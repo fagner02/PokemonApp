@@ -3,6 +3,7 @@ accompanistSystemuicontroller = "0.33.2-alpha"
 coilNetworkOkhttp = "3.0.4"
 coilCompose = "3.0.4"
 coreSplashscreen = "1.0.1"
+datastorePreferences = "1.1.1"
 gson = "2.11.0"
 ktor-client = "2.3.6" #latest version of Ktor
 agp = "8.6.1"
@@ -28,10 +29,12 @@ navigationCompose = "2.8.5"
 media3Exoplayer = "1.5.1"
 media3Ui = "1.5.1"
 transportApi = "4.0.0"
+datastoreCoreAndroid = "1.1.1"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -69,6 +72,7 @@ material-icons-extended = { module = "androidx.compose.material:material-icons-e
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 translate = { module = "com.google.mlkit:translate", version.ref = "translate" }
 transport-api = { group = "com.google.android.datatransport", name = "transport-api", version.ref = "transportApi" }
+androidx-datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
