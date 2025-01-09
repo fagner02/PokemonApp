@@ -143,10 +143,14 @@ fun PokemonList(
                             },
                             animatedVisibilityScope = animatedVisibilityScope,
                             sharedTransitionScope = sharedTransitionScope,
+                            isAnimating = isAnimating,
+//                            modifier = Modifier,
                             modifier = Modifier.animateItem()
                         )
                     } else {
-                        PokemonCardPlaceholder()
+                        PokemonCardPlaceholder(
+                            Modifier.animateItem()
+                        )
                     }
                 }
             }
@@ -170,7 +174,7 @@ fun Modifier.shimmer(): Modifier = composed {
         Brush.horizontalGradient(
             listOf(
                 MaterialTheme.colorScheme.surfaceContainerHigh,
-                Color(0xff555555),
+                Color(0xffb9b9c1),
                 MaterialTheme.colorScheme.surfaceContainerHigh,
             ),
             startX = x - size.width.toFloat(),

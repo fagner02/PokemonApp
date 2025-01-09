@@ -32,7 +32,7 @@ data class EncounterVersion(val encounter_details: List<EncounterDetails>, val m
 data class Encounter(val location_area: ApiResource, val version_details:  List<EncounterVersion>)
 @Serializable
 @Immutable
-data class Pokemon(val name: String, val types: List<TypeSlot>, val sprites: Sprites, val cries: Cries, val abilities: List<AbilitySlot>)
+data class Pokemon(val name: String, val types: List<TypeSlot>, val sprites: Sprites, val species: ApiResource, val cries: Cries, val abilities: List<AbilitySlot>)
 @Serializable
 data class Location(val names: List<Name>)
 @Serializable
@@ -41,7 +41,8 @@ data class AbilityEffect(var effect: String, val language: Name)
 data class FlavorText(var flavor_text: String, val language: Name)
 @Serializable
 data class AbilityDetails(val effect_entries: List<AbilityEffect>, val flavor_text_entries: List<FlavorText>)
-
+@Serializable
+data class Species(val flavor_text_entries: List<FlavorText>)
 class PokemonService {
     private val client= HttpClient()
     private val api = "https://pokeapi.co/api/v2"
@@ -94,6 +95,16 @@ class PokemonService {
             return location
         }catch (e: Throwable){
             return Location(emptyList())
+        }
+    }
+
+    suspend fun getSpecies(url: String): Species {
+        try {
+            val res = client.get { url(url) }
+            val species = Gson().fromJson(res.bodyAsText(), Species::class.java)
+            return species
+        } catch (e: Throwable) {
+            return Species(emptyList())
         }
     }
 }

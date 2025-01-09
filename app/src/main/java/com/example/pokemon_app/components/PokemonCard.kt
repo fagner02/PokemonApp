@@ -21,14 +21,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +34,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.pokemon_app.api.Pokemon
-import com.example.pokemon_app.favList
 import com.example.pokemon_app.theme.typeColors
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -50,6 +44,7 @@ fun PokemonCard(
     scrollToItem: (Int)->Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
+    isAnimating: Boolean,
     modifier: Modifier
 ) {
     with(sharedTransitionScope) {
@@ -62,7 +57,7 @@ fun PokemonCard(
                 )
                 .fillMaxWidth()
                 .padding(8.dp)
-                .clickable {
+                .clickable(enabled = !isAnimating) {
                     scrollToItem(index)
                 }
 
@@ -143,9 +138,10 @@ fun PokemonCard(
 
 @Composable
 fun PokemonCardPlaceholder(
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .animateContentSize()
             .fillMaxWidth()
             .padding(8.dp)

@@ -23,8 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -56,11 +54,12 @@ import com.example.pokemon_app.api.AbilityDetails
 import com.example.pokemon_app.api.Encounter
 import com.example.pokemon_app.api.Pokemon
 import com.example.pokemon_app.api.PokemonService
-import com.example.pokemon_app.favList
+import com.example.pokemon_app.api.Species
 import com.example.pokemon_app.theme.pokemonVersionColors
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 @OptIn(UnstableApi::class)
@@ -79,8 +78,14 @@ fun DetailsScreen(
 ) {
     with(sharedTransitionScope) {
         val encounters = remember { emptyList<Encounter>().toMutableList() }
+        var species: Species? by remember { mutableStateOf(null) }
         LaunchedEffect(true) {
-            encounters.addAll(service.getEncounters(pokemon.name))
+            launch{
+                encounters.addAll(service.getEncounters(pokemon.name))
+            }
+            launch {
+                species=service.getSpecies(pokemon.species.url)
+            }
         }
         Column(
             modifier = modifier
@@ -167,7 +172,6 @@ fun DetailsScreen(
                             rememberSharedContentState(key = "${pokemon.name}-name"),
                             animatedVisibilityScope
                         )
-
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(5.dp),
@@ -179,6 +183,10 @@ fun DetailsScreen(
                         TypesLabel(pokemon)
                     }
                     MusicPlayer(pokemon.cries.latest)
+                    if(species != null && species?.flavor_text_entries?.isNotEmpty() == true){
+                        Text(species!!.flavor_text_entries[0].flavor_text.replace("\n", " "),
+                            Modifier.fillMaxWidth())
+                    }
                     Column(
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.spacedBy(5.dp)
