@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +43,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
@@ -59,6 +63,8 @@ import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.theme.PokemonAppTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 val favList: MutableList<String> = mutableStateListOf()
 
@@ -103,7 +109,8 @@ private fun createNotificationChannel(context: Context) {
     }
 }
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
+private val isDarkModePreferences = booleanPreferencesKey("is_dark_mode")
 
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
@@ -113,8 +120,14 @@ class PokemonActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+
             val list: MutableList<Pokemon> = remember { emptyList<Pokemon>().toMutableStateList() }
-            var isDarkModeEnabled by remember { mutableStateOf(false) }
+            var isDarkModeFlow = remember {
+                dataStore.data.map { preference ->
+                    preference[isDarkModePreferences] ?: false
+                }
+            }
+            val isDarkModeEnabled by isDarkModeFlow.collectAsState(initial = false)
             val color = MaterialTheme.colorScheme.background.toArgb()
             var isLoading by remember { mutableStateOf(false) }
             var lastRoute by remember { mutableStateOf("list") }
@@ -129,6 +142,13 @@ class PokemonActivity : ComponentActivity() {
                     }
                 }
             }
+//            var isDarkModeFlow = remember {
+//                dataStore.data
+//                    .map { preferences ->
+//                        preferences[isDarkModePreferences]
+//                    }
+//            }
+//            val isDarkMode by isDarkModeFlow.collectAsState(initial = false)
 
             LaunchedEffect(isDarkModeEnabled) {
                 enableEdgeToEdge(
@@ -232,7 +252,13 @@ class PokemonActivity : ComponentActivity() {
                                 SettingsScreen(
                                     isDarkModeEnabled = isDarkModeEnabled,
                                     isNotificationsEnabled = isNotificationsEnabled,
-                                    onToggleDarkMode = { isDarkModeEnabled = it },
+                                    onToggleDarkMode = {
+                                        scope.launch {
+                                            dataStore.edit { preference ->
+                                                preference[isDarkModePreferences] = it
+                                            }
+                                        }
+                                    },
                                     onToggleNotifications = { isNotificationsEnabled = it },
                                     onClearFavorites = {
                                         favList.clear()
@@ -243,7 +269,11 @@ class PokemonActivity : ComponentActivity() {
                                         ).show()
                                     },
                                     onResetPreferences = {
-                                        isDarkModeEnabled = false
+                                        scope.launch {
+                                            dataStore.edit { preferences ->
+                                                preferences[isDarkModePreferences] = false
+                                            }
+                                        }
                                         isNotificationsEnabled = true
                                         favList.clear()
                                         Toast.makeText(
