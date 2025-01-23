@@ -10,8 +10,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -42,8 +45,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
-import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -61,6 +64,7 @@ import com.example.pokemon_app.components.HelpAndSupportScreen
 import com.example.pokemon_app.components.ListScreen
 import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
+import com.example.pokemon_app.components.setAlarm
 import com.example.pokemon_app.theme.PokemonAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
@@ -77,20 +81,22 @@ val screens = mapOf(
 )
 
 private fun sendNotification(context: Context, title: String, content: String) {
-    val builder = NotificationCompat.Builder(context, "EVENT_CHANNEL")
+    val builder = NotificationCompat.Builder(context, "NOTIFICATION_CHANNEL")
         .setSmallIcon(R.drawable.poke)
         .setContentTitle(title)
         .setContentText(content)
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setPriority(NotificationCompat.PRIORITY_MAX)
 
     with(NotificationManagerCompat.from(context)) {
+
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        ) {Toast.makeText(context, "Notification not sent", Toast.LENGTH_SHORT).show()
             return
         }
+        Toast.makeText(context, "Notification sent", Toast.LENGTH_SHORT).show()
         notify(title.hashCode(), builder.build())
     }
 }
@@ -115,14 +121,37 @@ private val isDarkModePreferences = booleanPreferencesKey("is_dark_mode")
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        createNotificationChannel(this@PokemonActivity)
 
         setContent {
+            val context = LocalContext.current
+
+            var hasNotificationPermission by remember {
+                mutableStateOf(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    } else true
+                )
+            }
+
+            val permissionRequest =
+                rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission()) { result ->
+                    hasNotificationPermission = result
+                    if(!hasNotificationPermission){
+                        Toast.makeText(context, "Notification permission denied", Toast.LENGTH_SHORT).show()
+                    }
+                }
 
             val list: MutableList<Pokemon> = remember { emptyList<Pokemon>().toMutableStateList() }
-            var isDarkModeFlow = remember {
+            val isDarkModeFlow = remember {
                 dataStore.data.map { preference ->
                     preference[isDarkModePreferences] ?: false
                 }
@@ -142,13 +171,6 @@ class PokemonActivity : ComponentActivity() {
                     }
                 }
             }
-//            var isDarkModeFlow = remember {
-//                dataStore.data
-//                    .map { preferences ->
-//                        preferences[isDarkModePreferences]
-//                    }
-//            }
-//            val isDarkMode by isDarkModeFlow.collectAsState(initial = false)
 
             LaunchedEffect(isDarkModeEnabled) {
                 enableEdgeToEdge(
@@ -159,6 +181,9 @@ class PokemonActivity : ComponentActivity() {
                 )
             }
             LaunchedEffect(true) {
+                permissionRequest.launch(Manifest.permission.POST_NOTIFICATIONS)
+                setAlarm(context)
+                Toast.makeText(this@PokemonActivity, "Loading", Toast.LENGTH_SHORT).show()
                 isLoading = true
                 var res = service.getPokemon()
                 while (res != null) {
