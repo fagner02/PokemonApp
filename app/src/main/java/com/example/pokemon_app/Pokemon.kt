@@ -96,7 +96,7 @@ private fun createNotificationChannel(context: Context) {
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 private val isDarkModePreferences = booleanPreferencesKey("is_dark_mode")
-private val notificationPreferences = booleanPreferencesKey("notifications")
+val notificationPreferences = booleanPreferencesKey("notifications")
 
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()

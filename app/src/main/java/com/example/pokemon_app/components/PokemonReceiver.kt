@@ -21,9 +21,11 @@ import com.example.pokemon_app.api.PokemonService
 import com.example.pokemon_app.data.EncounteredPokemon
 import com.example.pokemon_app.data.PokemonDatabase
 import com.example.pokemon_app.dataStore
+import com.example.pokemon_app.notificationPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlin.coroutines.CoroutineContext
@@ -86,24 +88,36 @@ fun BroadcastReceiver.goAsync(
 class PokemonEncounterReceiver : BroadcastReceiver() {
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onReceive(context: Context, intent: Intent) = goAsync {
-        val itemDao = PokemonDatabase.getDatabase(context.applicationContext).itemDao()
-        val pokemonId =  abs(Random.nextInt()%1000)
-        itemDao.insert(EncounteredPokemon(num =pokemonId))
-        val pokemon = PokemonService().getPokemonById(pokemonId)
-        if (pokemon == null) {
+        val notificationEnabled = context.dataStore.data.first()[notificationPreferences]?:true
+        if(!notificationEnabled){
             setAlarm(context)
             return@goAsync
         }
-        val name = pokemon.name.replaceFirstChar { it.uppercase() }
-
+        val itemDao = PokemonDatabase.getDatabase(context.applicationContext).itemDao()
+        val title :String
+        val content : String
+        if(itemDao.getCount() >= 5){
+            title = "O jardim está cheio"
+            content = "O seu jardim alcançou o limite de 10 pokemons"
+        }else {
+            val pokemonId = abs(Random.nextInt() % 1000)
+            itemDao.insert(EncounteredPokemon(num = pokemonId))
+            val pokemon = PokemonService().getPokemonById(pokemonId)
+            if (pokemon == null) {
+                setAlarm(context)
+                return@goAsync
+            }
+            val name = pokemon.name.replaceFirstChar { it.uppercase() }
+            title = "$name encontrado"
+            content = "Um $name apareceu no seu jardim"
+        }
         val builder = NotificationCompat.Builder(context, "NOTIFICATION_CHANNEL")
             .setSmallIcon(R.drawable.poke)
-            .setContentTitle("$name encontrado")
-            .setContentText("Um $name apareceu no seu jardim")
+            .setContentTitle(title)
+            .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
         with(NotificationManagerCompat.from(context)) {
-
             if (ActivityCompat.checkSelfPermission(
                     context,
                     Manifest.permission.POST_NOTIFICATIONS
@@ -111,7 +125,7 @@ class PokemonEncounterReceiver : BroadcastReceiver() {
             ) {
                 return@goAsync
             }
-            notify(pokemonId, builder.build())
+            notify(title.hashCode(), builder.build())
         }
         setAlarm(context)
     }
