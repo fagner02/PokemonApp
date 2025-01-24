@@ -105,6 +105,7 @@ private fun createNotificationChannel(context: Context) {
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 private val isDarkModePreferences = booleanPreferencesKey("is_dark_mode")
+private val notificationPreferences = booleanPreferencesKey("notifications")
 
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
@@ -144,6 +145,12 @@ class PokemonActivity : ComponentActivity() {
                     preference[isDarkModePreferences] ?: false
                 }
             }
+            val notificationFlow = remember {
+                dataStore.data.map { preference ->
+                    preference[notificationPreferences] ?: true
+                }
+            }
+            val notificationEnabled by notificationFlow.collectAsState(initial = true)
             val isDarkModeEnabled by isDarkModeFlow.collectAsState(initial = false)
             val color = MaterialTheme.colorScheme.background.toArgb()
             var isLoading by remember { mutableStateOf(false) }
@@ -272,11 +279,9 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
-                                var isNotificationsEnabled by remember { mutableStateOf(true) }
-
                                 SettingsScreen(
                                     isDarkModeEnabled = isDarkModeEnabled,
-                                    isNotificationsEnabled = isNotificationsEnabled,
+                                    isNotificationsEnabled = notificationEnabled,
                                     onToggleDarkMode = {
                                         scope.launch {
                                             dataStore.edit { preference ->
@@ -284,7 +289,13 @@ class PokemonActivity : ComponentActivity() {
                                             }
                                         }
                                     },
-                                    onToggleNotifications = { isNotificationsEnabled = it },
+                                    onToggleNotifications = {
+                                        scope.launch {
+                                            dataStore.edit { preference ->
+                                                preference[notificationPreferences] = it
+                                            }
+                                        }
+                                    },
                                     onClearFavorites = {
                                         favList.clear()
                                         Toast.makeText(
@@ -298,8 +309,10 @@ class PokemonActivity : ComponentActivity() {
                                             dataStore.edit { preferences ->
                                                 preferences[isDarkModePreferences] = false
                                             }
+                                            dataStore.edit { preference ->
+                                                preference[notificationPreferences] = true
+                                            }
                                         }
-                                        isNotificationsEnabled = true
                                         favList.clear()
                                         Toast.makeText(
                                             context,
