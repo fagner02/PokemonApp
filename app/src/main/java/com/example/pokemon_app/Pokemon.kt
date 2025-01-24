@@ -35,7 +35,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -43,16 +42,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
@@ -68,13 +62,10 @@ import com.example.pokemon_app.components.ListScreen
 import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.components.setAlarm
-import com.example.pokemon_app.components.timer
-import com.example.pokemon_app.data.EncounteredPokemon
 import com.example.pokemon_app.data.PokemonDatabase
 import com.example.pokemon_app.data.PokemonRepository
 import com.example.pokemon_app.data.PokemonViewModel
 import com.example.pokemon_app.theme.PokemonAppTheme
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -266,13 +257,6 @@ class PokemonActivity : ComponentActivity() {
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
                                 val pokemonViewModel = remember { PokemonViewModel(this@PokemonActivity)}
-                                val timerFlow = remember {
-                                    context.dataStore.data.map {
-                                        it[timer] ?: 0
-                                    }
-                                }
-                                val timer by timerFlow.collectAsState(initial = 0)
-
                                 GardenScreen(pokemonViewModel, this@PokemonActivity)
                             }
                             composable("settings",

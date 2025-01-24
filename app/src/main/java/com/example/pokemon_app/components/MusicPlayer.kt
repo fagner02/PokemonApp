@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Slider
-import androidx.compose.material.SliderDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
@@ -97,8 +97,7 @@ fun MusicPlayer(songUrl: String) {
             .clip(RoundedCornerShape(25))
             .background(MaterialTheme.colorScheme.secondary)
     ) {
-        Row(
-        ) {
+        Row {
             if (isLoaded) {
                 IconButton(
                     onClick = {
