@@ -132,7 +132,7 @@ fun DetailsScreen(
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
-                        .verticalScroll(state),
+                        .verticalScroll(state, !isAnimating),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
