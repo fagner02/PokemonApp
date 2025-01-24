@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(entities = [EncounteredPokemon::class], version = 1, exportSchema = false)
 abstract class PokemonDatabase : RoomDatabase() {
-    abstract fun itemDao(): ItemDao
+    abstract fun itemDao(): PokemonDao
 
     companion object {
         @Volatile

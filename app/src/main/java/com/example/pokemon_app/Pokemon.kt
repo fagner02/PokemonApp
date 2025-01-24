@@ -51,6 +51,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
@@ -66,7 +68,10 @@ import com.example.pokemon_app.components.ListScreen
 import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.components.setAlarm
+import com.example.pokemon_app.components.timer
 import com.example.pokemon_app.data.EncounteredPokemon
+import com.example.pokemon_app.data.PokemonDatabase
+import com.example.pokemon_app.data.PokemonRepository
 import com.example.pokemon_app.data.PokemonViewModel
 import com.example.pokemon_app.theme.PokemonAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -83,27 +88,6 @@ val screens = mapOf(
     "settings" to 3,
     "help" to 4
 )
-
-private fun sendNotification(context: Context, title: String, content: String) {
-    val builder = NotificationCompat.Builder(context, "NOTIFICATION_CHANNEL")
-        .setSmallIcon(R.drawable.poke)
-        .setContentTitle(title)
-        .setContentText(content)
-        .setPriority(NotificationCompat.PRIORITY_MAX)
-
-    with(NotificationManagerCompat.from(context)) {
-
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {Toast.makeText(context, "Notification not sent", Toast.LENGTH_SHORT).show()
-            return
-        }
-        Toast.makeText(context, "Notification sent", Toast.LENGTH_SHORT).show()
-        notify(title.hashCode(), builder.build())
-    }
-}
 
 private fun createNotificationChannel(context: Context) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -122,7 +106,6 @@ private fun createNotificationChannel(context: Context) {
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 private val isDarkModePreferences = booleanPreferencesKey("is_dark_mode")
 
-//@AndroidEntryPoint
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
 
@@ -187,7 +170,13 @@ class PokemonActivity : ComponentActivity() {
             }
             LaunchedEffect(true) {
                 permissionRequest.launch(Manifest.permission.POST_NOTIFICATIONS)
-                setAlarm(context)
+                Thread {
+                    if (PokemonRepository(
+                            PokemonDatabase.getDatabase(this@PokemonActivity).itemDao()
+                        ).getCount() == 0
+                    )
+                        setAlarm(this@PokemonActivity, true)
+                }.start()
                 Toast.makeText(this@PokemonActivity, "Loading", Toast.LENGTH_SHORT).show()
                 isLoading = true
                 var res = service.getPokemon()
@@ -202,7 +191,6 @@ class PokemonActivity : ComponentActivity() {
             PokemonAppTheme(
                 darkTheme = isDarkModeEnabled
             ) {
-
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
 
@@ -271,15 +259,20 @@ class PokemonActivity : ComponentActivity() {
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
                                 val pokemonViewModel = remember { PokemonViewModel(this@PokemonActivity)}
+                                val timerFlow = remember {
+                                    context.dataStore.data.map {
+                                        it[timer] ?: 0
+                                    }
+                                }
+                                val timer by timerFlow.collectAsState(initial = 0)
 
-                                GardenScreen(list.filter { x -> x.name.contains("cha") }, pokemonViewModel)
+                                GardenScreen(pokemonViewModel, this@PokemonActivity)
                             }
                             composable("settings",
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
                                 var isNotificationsEnabled by remember { mutableStateOf(true) }
-                                val context = LocalContext.current
 
                                 SettingsScreen(
                                     isDarkModeEnabled = isDarkModeEnabled,
@@ -320,7 +313,6 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
-                                val context = LocalContext.current
                                 HelpAndSupportScreen(onSendSupportMessage = { message ->
                                     Toast.makeText(
                                         context,

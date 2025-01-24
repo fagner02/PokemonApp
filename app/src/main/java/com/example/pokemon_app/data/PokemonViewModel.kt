@@ -16,6 +16,10 @@ class PokemonViewModel(context: Context) : ViewModel() {
         getPokemons()
     }
 
+    fun getCount(): Int {
+        return repository.getCount()
+    }
+
     fun getPokemons() {
         viewModelScope.launch {
             repository.getAllItems().collect {

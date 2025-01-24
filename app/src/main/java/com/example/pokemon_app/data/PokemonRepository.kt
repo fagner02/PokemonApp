@@ -2,14 +2,16 @@ package com.example.pokemon_app.data
 
 import kotlinx.coroutines.flow.Flow
 
-class PokemonRepository(private val itemDao: ItemDao) {
-     fun getAllItems(): Flow<List<EncounteredPokemon>> = itemDao.getAllItems()
+class PokemonRepository(private val pokemonDao: PokemonDao) {
+     fun getAllItems(): Flow<List<EncounteredPokemon>> = pokemonDao.getAllItems()
 
-     fun getItem(id: Int): Flow<EncounteredPokemon?> = itemDao.getItem(id)
+     fun getCount(): Int = pokemonDao.getCount()
 
-     public suspend fun addItem(item: EncounteredPokemon) = itemDao.insert(item)
+     fun getItem(id: Int): Flow<EncounteredPokemon?> = pokemonDao.getItem(id)
 
-     suspend fun deleteItem(item: EncounteredPokemon) = itemDao.delete(item)
+     public suspend fun addItem(item: EncounteredPokemon) = pokemonDao.insert(item)
 
-     suspend fun updateItem(item: EncounteredPokemon) = itemDao.update(item)
+     suspend fun deleteItem(item: EncounteredPokemon) = pokemonDao.delete(item)
+
+     suspend fun updateItem(item: EncounteredPokemon) = pokemonDao.update(item)
 }

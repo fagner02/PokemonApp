@@ -56,11 +56,21 @@ class PokemonService {
             val res = client.get { url("$next") }
             val resourceList = Gson().fromJson(res.bodyAsText(), ApiResourceList::class.java)
             val pokeRes =
-                client.get { url("https://pokeapi.co/api/v2/pokemon/${resourceList.results[0].name}") }
+                client.get { url("$api/pokemon/${resourceList.results[0].name}") }
             val pokemon =
                 Gson().fromJson(pokeRes.bodyAsText(), Pokemon::class.java)
 
             next = resourceList.next
+            return pokemon
+        } catch (e: Throwable) {
+            return null
+        }
+    }
+
+    suspend fun getPokemonById(id: Int): Pokemon? {
+        try {
+            val res = client.get { url("$api/pokemon/$id") }
+            val pokemon = Gson().fromJson(res.bodyAsText(), Pokemon::class.java)
             return pokemon
         } catch (e: Throwable) {
             return null

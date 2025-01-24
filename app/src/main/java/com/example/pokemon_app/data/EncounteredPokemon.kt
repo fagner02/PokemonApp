@@ -13,11 +13,11 @@ import kotlinx.coroutines.flow.Flow
 class EncounteredPokemon(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val name: String
+    val num: Int
 )
 
 @Dao
-interface ItemDao {
+interface PokemonDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(item: EncounteredPokemon)
 
@@ -27,9 +27,12 @@ interface ItemDao {
     @Delete
     suspend fun delete(item: EncounteredPokemon)
 
+    @Query("SELECT COUNT(id) from items")
+    fun getCount(): Int
+
     @Query("SELECT * from items WHERE id = :id")
     fun getItem(id: Int): Flow<EncounteredPokemon>
 
-    @Query("SELECT * from items ORDER BY name ASC")
+    @Query("SELECT * from items ORDER BY num ASC")
     fun getAllItems(): Flow<List<EncounteredPokemon>>
 }
