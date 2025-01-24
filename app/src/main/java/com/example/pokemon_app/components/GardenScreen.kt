@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -40,12 +41,14 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.pokemon_app.R
 import com.example.pokemon_app.api.Pokemon
+import com.example.pokemon_app.data.PokemonViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @Composable
-fun GardenScreen(pokemon: List<Pokemon>) {
+fun GardenScreen(pokemon: List<Pokemon>, pokemonModel: PokemonViewModel) {
     Box(modifier = Modifier
         .fillMaxSize(),
         contentAlignment = Alignment.Center) {
@@ -130,9 +133,12 @@ fun GardenScreen(pokemon: List<Pokemon>) {
                 filterQuality = FilterQuality.None,
                 contentScale = ContentScale.FillBounds,
             )
-            pokemon.forEach{
-                PokemonSprite(maxWidth, pad, ratio, it.sprites.front_default)
+            pokemonModel.pokemons.forEach{
+                Text(it.id.toString())
             }
+//            pokemon.forEach{
+//                PokemonSprite(maxWidth, pad, ratio, it.sprites.front_default)
+//            }
         }
     }
 }

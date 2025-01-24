@@ -15,7 +15,15 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.pokemon_app.R
+import com.example.pokemon_app.data.EncounteredPokemon
+import com.example.pokemon_app.data.PokemonDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 @RequiresApi(Build.VERSION_CODES.S)
 fun setAlarm(context: Context){
@@ -37,19 +45,38 @@ fun setAlarm(context: Context){
             context.startActivity(intent)
         }
     }
-    val hours = 1;
+    val hours = 0;
     val miliseconds = hours * 60 * 60 * 1000
     if (alarmManager.canScheduleExactAlarms()) {
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, calendar.timeInMillis+miliseconds, pendingIntent)
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC, calendar.timeInMillis + 1000, pendingIntent)
     }
 
 }
+
+@OptIn(DelicateCoroutinesApi::class)
+fun BroadcastReceiver.goAsync(
+    context: CoroutineContext = EmptyCoroutineContext,
+    block: suspend CoroutineScope.(BroadcastReceiver.PendingResult) -> Unit){
+    val pendingResult: BroadcastReceiver.PendingResult = goAsync()
+    GlobalScope.launch(context) {
+        try {
+            block(pendingResult)
+        } finally {
+            pendingResult.finish()
+        }
+    }
+}
+
 class PokemonEncounterReceiver : BroadcastReceiver() {
     @RequiresApi(Build.VERSION_CODES.S)
-    override fun onReceive(context: Context, intent: Intent) {
-        Toast.makeText(context, "Alarme Disparado!", Toast.LENGTH_LONG).show()
+    override fun onReceive(context: Context, intent: Intent) = goAsync {
+        println("recebido")
+        val itemDao = PokemonDatabase.getDatabase(context.applicationContext).itemDao()
+        val pokemon = intent.getStringExtra("pokemon")
+        if (pokemon != null) {
+            itemDao.insert(EncounteredPokemon(name = pokemon))
+        }
 
-        var pokemon = intent.getStringExtra("pokemon")
         val builder = NotificationCompat.Builder(context, "NOTIFICATION_CHANNEL")
             .setSmallIcon(R.drawable.poke)
             .setContentTitle(pokemon)
@@ -62,10 +89,9 @@ class PokemonEncounterReceiver : BroadcastReceiver() {
                     context,
                     Manifest.permission.POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
-            ) {Toast.makeText(context, "Notification not sent", Toast.LENGTH_SHORT).show()
-                return
+            ) {
+                return@goAsync
             }
-            Toast.makeText(context, "Notification sent", Toast.LENGTH_SHORT).show()
             notify("title".hashCode(), builder.build())
         }
         setAlarm(context)

@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -65,7 +66,10 @@ import com.example.pokemon_app.components.ListScreen
 import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.components.setAlarm
+import com.example.pokemon_app.data.EncounteredPokemon
+import com.example.pokemon_app.data.PokemonViewModel
 import com.example.pokemon_app.theme.PokemonAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -118,6 +122,7 @@ private fun createNotificationChannel(context: Context) {
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 private val isDarkModePreferences = booleanPreferencesKey("is_dark_mode")
 
+//@AndroidEntryPoint
 class PokemonActivity : ComponentActivity() {
     private val service = PokemonService()
 
@@ -265,7 +270,9 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
-                                GardenScreen(list.filter { x -> x.name.contains("cha") })
+                                val pokemonViewModel = remember { PokemonViewModel(this@PokemonActivity)}
+
+                                GardenScreen(list.filter { x -> x.name.contains("cha") }, pokemonViewModel)
                             }
                             composable("settings",
                                 enterTransition = { getInTransition(this, lastRoute, route) },
