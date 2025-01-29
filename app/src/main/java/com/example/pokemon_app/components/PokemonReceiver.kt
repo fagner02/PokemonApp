@@ -1,6 +1,7 @@
 package com.example.pokemon_app.components
 
 import android.Manifest
+import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -47,8 +48,17 @@ fun setAlarm(context: Context, initial: Boolean = false){
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
+
     if(!alarmManager.canScheduleExactAlarms()){
-        Toast.makeText(context, "Permissão necessária para configurar alarmes exatos.", Toast.LENGTH_SHORT).show()
+        if(context is Activity){
+            context.runOnUiThread {
+                Toast.makeText(
+                    context,
+                    "Permissão necessária para configurar alarmes exatos.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
         }

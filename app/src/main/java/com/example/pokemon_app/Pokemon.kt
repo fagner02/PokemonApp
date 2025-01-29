@@ -69,12 +69,10 @@ import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.components.setAlarm
 import com.example.pokemon_app.components.timer
-import com.example.pokemon_app.data.EncounteredPokemon
 import com.example.pokemon_app.data.PokemonDatabase
 import com.example.pokemon_app.data.PokemonRepository
 import com.example.pokemon_app.data.PokemonViewModel
 import com.example.pokemon_app.theme.PokemonAppTheme
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
