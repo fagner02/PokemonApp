@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.magnifier
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,8 +44,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.datastore.dataStore
 import coil3.compose.AsyncImage
 import com.example.pokemon_app.R
 import com.example.pokemon_app.api.Pokemon
@@ -58,7 +56,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.Date
 import kotlin.math.abs
 
 @Composable
@@ -151,7 +148,7 @@ fun PokemonSprite(maxWidth: Dp, pad: Dp, ratio: Float, url: String?){
     }
     LaunchedEffect(moving) {
         if (moving) {
-            val newx = widthPx * ((0..1000).random() / 1000f);
+            val newx = widthPx * ((0..1000).random() / 1000f)
             val newy = heightPx * ((0..1000).random() / 1000f)
             val timex = abs(newx - posx.value) / widthPx
             val timey = abs(newy - posy.value) / heightPx
@@ -195,6 +192,6 @@ fun PokemonSprite(maxWidth: Dp, pad: Dp, ratio: Float, url: String?){
         modifier = Modifier
             .size(spriteWidth + pad)
             .padding(pad)
-            .offset(posx.value.dp, posy.value.dp + offset.value.dp)
+            .offset { IntOffset(posx.value.dp.toPx().toInt(), (posy.value.dp.toPx() + offset.value.dp.toPx()).toInt()) }
     )
 }

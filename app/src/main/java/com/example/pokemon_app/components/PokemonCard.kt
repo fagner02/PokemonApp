@@ -107,22 +107,7 @@ fun PokemonCard(
                             }
                         }
                     }
-//                    TextButton(onClick = {
-//                        if (favList.contains(pokemon.name)) {
-//                            favList.remove(pokemon.name)
-//                        } else {
-//                            favList.add(pokemon.name)
-//                        }
-//                    }) {
-//                        Icon(
-//                            if (favList.contains(pokemon.name)) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
-//                            contentDescription = "favoritar",
-//                            modifier = Modifier.sharedElement(
-//                                rememberSharedContentState(key = "${pokemon.name}-fav"),
-//                                animatedVisibilityScope
-//                            )
-//                        )
-//                    }
+
                     FavouriteButton(
                         pokemon,
                         sharedTransitionScope,
