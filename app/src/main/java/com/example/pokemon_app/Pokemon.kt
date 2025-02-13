@@ -55,7 +55,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pokemon_app.api.Pokemon
 import com.example.pokemon_app.api.PokemonService
 import com.example.pokemon_app.components.BottomBar
-import com.example.pokemon_app.components.Drawer
 import com.example.pokemon_app.components.GardenScreen
 import com.example.pokemon_app.components.HelpAndSupportScreen
 import com.example.pokemon_app.components.ListScreen
@@ -189,13 +188,12 @@ class PokemonActivity : ComponentActivity() {
             PokemonAppTheme(
                 darkTheme = isDarkModeEnabled
             ) {
-                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
                 val scope = rememberCoroutineScope()
 
-                Drawer(navController, drawerState) {
                     Scaffold(modifier = Modifier.fillMaxSize(),
                         bottomBar = { BottomBar(route, navController) },
-                        topBar = { TopBar(route, navController, scope, drawerState) }
+                        topBar = { TopBar(route, navController, scope) }
                     ) { innerPadding ->
                         var searchQuery by remember { mutableStateOf("") }
                         val listState = rememberLazyListState()
@@ -320,7 +318,6 @@ class PokemonActivity : ComponentActivity() {
                             }
                         }
                     }
-                }
             }
         }
     }
