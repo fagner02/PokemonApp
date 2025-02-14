@@ -63,6 +63,7 @@ import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.components.setAlarm
 import com.example.pokemon_app.data.AuthRepository
 import com.example.pokemon_app.data.AuthViewModel
+import com.example.pokemon_app.data.ForgotPasswordScreen
 import com.example.pokemon_app.data.LoginScreen
 import com.example.pokemon_app.data.PokemonDatabase
 import com.example.pokemon_app.data.PokemonRepository
@@ -112,7 +113,7 @@ class PokemonActivity : ComponentActivity() {
 
         setContent {
             val context = LocalContext.current
-
+            val authViewModel = remember { AuthViewModel(AuthRepository()) }
             var hasNotificationPermission by remember {
                 mutableStateOf(
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -197,7 +198,7 @@ class PokemonActivity : ComponentActivity() {
 
                     Scaffold(modifier = Modifier.fillMaxSize(),
                         bottomBar = { BottomBar(route, navController) },
-                        topBar = { TopBar(route, navController, scope) }
+                        topBar = { TopBar(route, navController, authViewModel) }
                     ) { innerPadding ->
                         var searchQuery by remember { mutableStateOf("") }
                         val listState = rememberLazyListState()
@@ -213,12 +214,13 @@ class PokemonActivity : ComponentActivity() {
 
                         NavHost(navController, startDestination = "login") {
                             composable("login"){
-                                val authViewModel = remember { AuthViewModel(AuthRepository()) }
                                 LoginScreen(authViewModel, navController)
                             }
                             composable("register"){
-                                val authViewModel = remember { AuthViewModel(AuthRepository()) }
                                 RegisterScreen(authViewModel, navController)
+                            }
+                            composable("forgotpassword"){
+                                ForgotPasswordScreen(authViewModel, navController)
                             }
                             composable(
                                 "list",

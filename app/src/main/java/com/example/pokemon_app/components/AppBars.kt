@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.pokemon_app.R
+import com.example.pokemon_app.data.AuthViewModel
 import kotlinx.coroutines.CoroutineScope
 
 
@@ -115,7 +116,7 @@ fun BottomBar(route: String, navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(route: String, navController: NavHostController, scope: CoroutineScope){
+fun TopBar(route: String, navController: NavHostController, authViewModel: AuthViewModel){
     val title: String =
         when (route) {
             "list"->"Início"
@@ -142,13 +143,13 @@ fun TopBar(route: String, navController: NavHostController, scope: CoroutineScop
         }
     },
         actions = {
-            MinimalDropdownMenu(navController)
+            MinimalDropdownMenu(navController, authViewModel)
         }
     )
 }
 
 @Composable
-fun MinimalDropdownMenu(navController: NavHostController) {
+fun MinimalDropdownMenu(navController: NavHostController, authViewModel: AuthViewModel) {
     var expanded by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -188,7 +189,8 @@ fun MinimalDropdownMenu(navController: NavHostController) {
                 leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
                 onClick = {
                     expanded = false
-                    navController.navigate("logout")
+                    authViewModel.logout()
+                    navController.navigate("login")
                 }
             )
         }
