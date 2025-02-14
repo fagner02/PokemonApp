@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "460988866049",
+    "project_id": "teste-3ef0d",
+    "storage_bucket": "teste-3ef0d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460988866049:android:a16df905ccd4e79aea6a00",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "460988866049-5e5gfr1oabku2t7enitlhitlk4t0cb1b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8x4G_pPt-a0GVfPTfxsLwkV4cSq4inCI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "460988866049-5e5gfr1oabku2t7enitlhitlk4t0cb1b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460988866049:android:ca1d8c5edd8d0c1eea6a00",
+        "android_client_info": {
+          "package_name": "com.example.pokemon_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "460988866049-2tcu463tc6kfhhvf18ds6abc7cdscodl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pokemon_app",
+            "certificate_hash": "61b91fb772d05caa6552e44f3c841c4110eb43d3"
+          }
+        },
+        {
+          "client_id": "460988866049-5e5gfr1oabku2t7enitlhitlk4t0cb1b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8x4G_pPt-a0GVfPTfxsLwkV4cSq4inCI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "460988866049-5e5gfr1oabku2t7enitlhitlk4t0cb1b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
