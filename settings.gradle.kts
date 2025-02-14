@@ -1,4 +1,5 @@
 pluginManagement {
+
     repositories {
         google {
             content {
@@ -12,6 +13,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {

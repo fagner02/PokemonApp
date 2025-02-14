@@ -62,9 +62,13 @@ import com.example.pokemon_app.components.ListScreen
 import com.example.pokemon_app.components.SettingsScreen
 import com.example.pokemon_app.components.TopBar
 import com.example.pokemon_app.components.setAlarm
+import com.example.pokemon_app.data.AuthRepository
+import com.example.pokemon_app.data.AuthViewModel
+import com.example.pokemon_app.data.LoginScreen
 import com.example.pokemon_app.data.PokemonDatabase
 import com.example.pokemon_app.data.PokemonRepository
 import com.example.pokemon_app.data.PokemonViewModel
+import com.example.pokemon_app.data.RegisterScreen
 import com.example.pokemon_app.theme.PokemonAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
@@ -209,7 +213,15 @@ class PokemonActivity : ComponentActivity() {
                             }
                         }
 
-                        NavHost(navController, startDestination = "list") {
+                        NavHost(navController, startDestination = "login") {
+                            composable("login"){
+                                val authViewModel = remember { AuthViewModel(AuthRepository()) }
+                                LoginScreen(authViewModel, navController)
+                            }
+                            composable("register"){
+                                val authViewModel = remember { AuthViewModel(AuthRepository()) }
+                                RegisterScreen(authViewModel, navController)
+                            }
                             composable(
                                 "list",
                                 enterTransition = { getInTransition(this, lastRoute, route) },
