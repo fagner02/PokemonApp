@@ -2,27 +2,33 @@ package com.example.pokemon_app.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.NavigationBarDefaults.windowInsets
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Help
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.CatchingPokemon
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -36,12 +42,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.pokemon_app.R
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -109,7 +115,7 @@ fun BottomBar(route: String, navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(route: String, navController: NavHostController, scope: CoroutineScope, drawerState: DrawerState){
+fun TopBar(route: String, navController: NavHostController, scope: CoroutineScope){
     val title: String =
         when (route) {
             "list"->"Início"
@@ -117,6 +123,7 @@ fun TopBar(route: String, navController: NavHostController, scope: CoroutineScop
             "garden" -> "Jardim"
             "settings" -> "Configurações"
             "help" -> "Ajuda"
+            "logout" -> "Logout"
             else -> navController.currentBackStackEntry?.arguments?.getString("pokemon")
                 ?:
                 ""
@@ -135,25 +142,55 @@ fun TopBar(route: String, navController: NavHostController, scope: CoroutineScop
         }
     },
         actions = {
-            IconButton(onClick = {
-                scope.launch {
-                    drawerState.apply { if (isClosed) open() else close() }
-                }
-            }) {
-                Icon(
-                    Icons.Rounded.Menu, "menu",
-                    Modifier.size(24.dp))
-            }
-            DropdownMenu(
-                showDropDownMenu,
-                onDismissRequest = { showDropDownMenu = false }) {
-                DropdownMenuItem(
-                    onClick = {},
-                    text = { Text("ajuda") })
-                DropdownMenuItem(
-                    onClick = {},
-                    text = { Text("config") })
-            }
+            MinimalDropdownMenu(navController)
         }
     )
+}
+
+@Composable
+fun MinimalDropdownMenu(navController: NavHostController) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+    ) {
+        IconButton(onClick = { expanded = !expanded }) {
+            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Configurações") },
+                leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    navController.navigate("settings")
+                }
+            )
+
+            HorizontalDivider(thickness = 2.dp, color = Color.LightGray)
+
+            DropdownMenuItem(
+                text = { Text("Ajuda") },
+                leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Help, contentDescription = null)},
+                onClick = {
+                    expanded = false
+                    navController.navigate("help")
+                }
+            )
+
+            HorizontalDivider(thickness = 2.dp, color = Color.LightGray)
+
+            DropdownMenuItem(
+                text = { Text("Logout") },
+                leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    navController.navigate("logout")
+                }
+            )
+        }
+    }
 }
