@@ -147,6 +147,7 @@ class PokemonActivity : ComponentActivity() {
             }
             val notificationEnabled by notificationFlow.collectAsState(initial = true)
             val isDarkModeEnabled by isDarkModeFlow.collectAsState(initial = false)
+            var isLogged by remember { mutableStateOf(false) }
             val color = MaterialTheme.colorScheme.background.toArgb()
             var isLoading by remember { mutableStateOf(false) }
             var lastRoute by remember { mutableStateOf("list") }
@@ -197,8 +198,8 @@ class PokemonActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                     Scaffold(modifier = Modifier.fillMaxSize(),
-                        bottomBar = { BottomBar(route, navController) },
-                        topBar = { TopBar(route, navController, authViewModel) }
+                        bottomBar = {if (isLogged) BottomBar(route, navController) },
+                        topBar = { if(isLogged) TopBar(route, navController, authViewModel) }
                     ) { innerPadding ->
                         var searchQuery by remember { mutableStateOf("") }
                         val listState = rememberLazyListState()
@@ -227,6 +228,7 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
+                                isLogged = true
                                 ListScreen(
                                     list,
                                     { input -> searchQuery = input },
@@ -243,6 +245,7 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
+                                isLogged = true
                                 ListScreen(
                                     list.filter { favList.contains(it.name) }.toMutableStateList(),
                                     { input -> searchQuery = input },
@@ -268,6 +271,7 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
+                                isLogged = true
                                 val pokemonViewModel = remember { PokemonViewModel(this@PokemonActivity)}
                                 GardenScreen(pokemonViewModel, this@PokemonActivity)
                             }
@@ -275,6 +279,7 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
+                                isLogged = true
                                 SettingsScreen(
                                     isDarkModeEnabled = isDarkModeEnabled,
                                     isNotificationsEnabled = notificationEnabled,
@@ -322,6 +327,7 @@ class PokemonActivity : ComponentActivity() {
                                 enterTransition = { getInTransition(this, lastRoute, route) },
                                 exitTransition = { getOutTransition(this, route, lastRoute) }
                             ) {
+                                isLogged = true
                                 HelpAndSupportScreen(onSendSupportMessage = { message ->
                                     Toast.makeText(
                                         context,
