@@ -89,7 +89,7 @@ fun LoginScreen(viewModel: AuthViewModel, navController: NavController) {
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Bem-vindo ao AuthApp!", fontSize = 30.sp, style = MaterialTheme.typography.headlineLarge)
+                Text("Bem-vindo ao PokemonApp!", fontSize = 30.sp, style = MaterialTheme.typography.headlineLarge)
 
                 Spacer(modifier = Modifier.height(16.dp))
 

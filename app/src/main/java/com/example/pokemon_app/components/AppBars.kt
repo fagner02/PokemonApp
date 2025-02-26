@@ -116,7 +116,7 @@ fun BottomBar(route: String, navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(route: String, navController: NavHostController, authViewModel: AuthViewModel){
+fun TopBar(route: String, navController: NavHostController, authViewModel: AuthViewModel, setLogout: () -> Unit){
     val title: String =
         when (route) {
             "list"->"Início"
@@ -143,13 +143,13 @@ fun TopBar(route: String, navController: NavHostController, authViewModel: AuthV
         }
     },
         actions = {
-            MinimalDropdownMenu(navController, authViewModel)
+            MinimalDropdownMenu(navController, authViewModel, setLogout)
         }
     )
 }
 
 @Composable
-fun MinimalDropdownMenu(navController: NavHostController, authViewModel: AuthViewModel) {
+fun MinimalDropdownMenu(navController: NavHostController, authViewModel: AuthViewModel, setLogout: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -190,6 +190,7 @@ fun MinimalDropdownMenu(navController: NavHostController, authViewModel: AuthVie
                 onClick = {
                     expanded = false
                     authViewModel.logout()
+                    setLogout()
                     navController.navigate("login")
                 }
             )

@@ -197,7 +197,10 @@ class PokemonActivity : ComponentActivity() {
 
                     Scaffold(modifier = Modifier.fillMaxSize(),
                         bottomBar = {if (isLogged) BottomBar(route, navController) },
-                        topBar = { if(isLogged) TopBar(route, navController, authViewModel) }
+                        topBar = { if(isLogged) TopBar(route, navController, authViewModel) {
+                            isLogged = false
+                        }
+                        }
                     ) { innerPadding ->
                         var searchQuery by remember { mutableStateOf("") }
                         val listState = rememberLazyListState()
@@ -213,12 +216,15 @@ class PokemonActivity : ComponentActivity() {
 
                         NavHost(navController, startDestination = "login") {
                             composable("login"){
+                                isLogged = false
                                 LoginScreen(authViewModel, navController)
                             }
                             composable("register"){
+                                isLogged = false
                                 RegisterScreen(authViewModel, navController)
                             }
                             composable("forgotpassword"){
+                                isLogged = false
                                 ForgotPasswordScreen(authViewModel, navController)
                             }
                             composable(
